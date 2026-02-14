@@ -1,0 +1,83 @@
+[
+  {
+    "id": "1",
+    "name": "400W Solar Panel - Mono PERC",
+    "slug": "400w-solar-panel-mono-perc",
+    "description": "High-efficiency monocrystalline panel perfect for DIY solar installations. 21.5% efficiency rating.",
+    "longDescription": "Our flagship 400W monocrystalline PERC panel delivers exceptional performance in all lighting conditions. Features advanced cell technology and 25-year linear power output warranty. Ideal for residential rooftops and ground mounts.",
+    "price": 34900,
+    "images": ["https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&q=80"],
+    "category": "Solar Panels",
+    "specifications": {
+      "Power Output": "400W",
+      "Efficiency": "21.5%",
+      "Cell Type": "Monocrystalline PERC",
+      "Dimensions": "1722×1134×30mm",
+      "Weight": "21.5 kg",
+      "Warranty": "25 years"
+    },
+    "featured": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "2",
+    "name": "Hybrid Inverter 5kW",
+    "slug": "hybrid-inverter-5kw",
+    "description": "Smart hybrid inverter with battery readiness. Compatible with all major battery systems.",
+    "longDescription": "Transform DC solar power into usable AC electricity for your home. This hybrid inverter features built-in monitoring, battery compatibility, and smart grid integration. Perfect for future battery expansion.",
+    "price": 189900,
+    "images": ["https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"],
+    "category": "Inverters",
+    "specifications": {
+      "Rated Power": "5 kW",
+      "Max DC Input": "8 kW",
+      "Efficiency": "98%",
+      "Phases": "Single",
+      "Warranty": "10 years"
+    },
+    "featured": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "3",
+    "name": "Solar Mounting Kit - Roof",
+    "slug": "solar-mounting-kit-roof",
+    "description": "Complete roof mounting system for 10 panels. Includes rails, clamps, and hardware.",
+    "longDescription": "Professional-grade aluminum mounting system designed for asphalt shingle and metal roofs. Engineered for Canadian weather with galvanized steel hardware. Easy DIY installation with included instructions.",
+    "price": 89900,
+    "images": ["https://images.unsplash.com/photo-1509391366360-2e959784a0ab?w=800&q=80"],
+    "category": "Mounting & Racking",
+    "specifications": {
+      "Capacity": "10 panels",
+      "Material": "Aluminum 6005-T5",
+      "Load Rating": "60 psf",
+      "Roof Types": "Asphalt, Metal",
+      "Warranty": "10 years"
+    },
+    "featured": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "4",
+    "name": "10kWh LiFePO4 Battery",
+    "slug": "10kwh-lifepo4-battery",
+    "description": "High-capacity lithium battery for home energy storage. 6000+ cycle life.",
+    "longDescription": "Store excess solar energy for use at night or during outages. This LiFePO4 battery offers superior safety, longevity, and performance compared to traditional lead-acid. Compatible with major inverter brands.",
+    "price": 499900,
+    "images": ["https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=800&q=80"],
+    "category": "Batteries",
+    "specifications": {
+      "Capacity": "10.24 kWh",
+      "Chemistry": "LiFePO4",
+      "Cycles": "6000+",
+      "Warranty": "10 years",
+      "Dimensions": "650×295×240mm"
+    },
+    "featured": false,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+]

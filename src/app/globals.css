@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --solar-sky: #0ea5e9;
+  --solar-ocean: #0284c7;
+  --solar-deep: #0c4a6e;
+  --solar-leaf: #22c55e;
+  --solar-forest: #16a34a;
+  --solar-sage: #15803d;
+}
+
+body {
+  background: linear-gradient(180deg, #0f172a 0%, #0c4a6e 50%, #0f172a 100%);
+  background-attachment: fixed;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .gradient-solar {
+    background: linear-gradient(135deg, var(--solar-sky) 0%, var(--solar-forest) 100%);
+  }
+  
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  
+  .glow-solar {
+    box-shadow: 0 0 40px rgba(14, 165, 233, 0.3), 0 0 80px rgba(34, 197, 94, 0.2);
+  }
+}
