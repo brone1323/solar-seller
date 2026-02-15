@@ -191,19 +191,74 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Images (URLs, one per line)</label>
-                  <textarea
-                    value={(newProduct.images || ['']).join('\n')}
-                    onChange={(e) =>
-                      setNewProduct((p) => ({
-                        ...p,
-                        images: e.target.value.split('\n').filter(Boolean),
-                      }))
-                    }
-                    rows={2}
-                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                    placeholder="https://example.com/image1.jpg"
-                  />
+                  <label className="block text-sm text-slate-400 mb-1">Images</label>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="flex-1 text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-solar-sky file:text-white file:cursor-pointer"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const fd = new FormData();
+                          fd.append('file', file);
+                          try {
+                            const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                            const data = await res.json();
+                            if (data.url) {
+                              setNewProduct((p) => ({
+                                ...p,
+                                images: [...(p.images || []).filter(Boolean), data.url],
+                              }));
+                            } else {
+                              alert(data.error || 'Upload failed');
+                            }
+                          } catch (err) {
+                            alert('Upload failed');
+                          }
+                          e.target.value = '';
+                        }}
+                      />
+                    </div>
+                    <textarea
+                      value={(newProduct.images || ['']).join('\n')}
+                      onChange={(e) =>
+                        setNewProduct((p) => ({
+                          ...p,
+                          images: e.target.value.split('\n').filter(Boolean),
+                        }))
+                      }
+                      rows={2}
+                      className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm"
+                      placeholder="Or paste image URLs, one per line"
+                    />
+                    {(newProduct.images || []).filter(Boolean).length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {(newProduct.images || []).filter(Boolean).map((url, i) => (
+                          <div key={i} className="relative group">
+                            <img
+                              src={url}
+                              alt=""
+                              className="w-16 h-16 object-cover rounded-lg border border-white/20"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setNewProduct((p) => ({
+                                  ...p,
+                                  images: (p.images || []).filter((_, j) => j !== i),
+                                }))
+                              }
+                              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Featured</label>

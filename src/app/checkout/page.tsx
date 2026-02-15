@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { PayPalCheckout } from '@/components/PayPalCheckout';
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(cents / 100);
@@ -10,6 +11,11 @@ function formatPrice(cents: number) {
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
+
+  const handlePayPalSuccess = () => {
+    setComplete(true);
+    clearCart();
+  };
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     email: '',
@@ -46,11 +52,10 @@ export default function CheckoutPage() {
             Thank you for your order. We&apos;ll send a confirmation to {form.email}.
           </p>
           <p className="text-slate-400 text-sm mb-8">
-            <strong>WooCommerce Integration:</strong> When connected to WooCommerce, orders will sync automatically. For now, this is a demo checkout.
+            Your order has been paid via PayPal. You&apos;ll receive a confirmation email from PayPal shortly.
           </p>
           <Link
             href="/products"
-            onClick={() => clearCart()}
             className="inline-flex px-6 py-3 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold"
           >
             Continue Shopping
@@ -148,27 +153,17 @@ export default function CheckoutPage() {
             <div className="glass rounded-2xl p-8">
               <h2 className="font-display text-xl font-semibold mb-6">Payment</h2>
               <p className="text-slate-400 mb-6">
-                Payment gateway integration (Stripe, WooCommerce, etc.) will be connected here.
-                For demo, clicking Place Order will complete the checkout.
+                Pay securely with your PayPal account.
               </p>
-              <div className="rounded-lg bg-white/5 border border-white/10 p-4 mb-6">
-                <p className="text-slate-400 text-sm">Card number</p>
-                <p className="text-slate-500">•••• •••• •••• ••••</p>
+              <div className="mb-6">
+                <PayPalCheckout onSuccess={handlePayPalSuccess} />
               </div>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setStep(1)}
-                  className="px-6 py-3 rounded-lg glass"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={() => setComplete(true)}
-                  className="flex-1 py-4 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold hover:opacity-90"
-                >
-                  Place Order
-                </button>
-              </div>
+              <button
+                onClick={() => setStep(1)}
+                className="w-full py-3 rounded-xl glass hover:bg-white/10 transition-colors"
+              >
+                Back to Shipping
+              </button>
             </div>
           )}
         </div>
