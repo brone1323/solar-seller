@@ -11,13 +11,14 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
     name: '',
     description: '',
     longDescription: '',
     price: 0,
-    category: 'Solar Panels',
-    images: [''],
+    category: 'Solar Kits',
+    images: ['', '', ''],
     specifications: {},
     featured: false,
   });
@@ -37,27 +38,38 @@ export default function AdminPage() {
       specifications: typeof newProduct.specifications === 'object' ? newProduct.specifications : {},
       images: Array.isArray(newProduct.images) ? newProduct.images.filter(Boolean) : [],
     };
-    if (editing) {
-      await fetch(`/api/products/${editing.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      setProducts((prev) =>
-        prev.map((p) => (p.id === editing.id ? { ...p, ...payload } : p))
-      );
-      setEditing(null);
-    } else {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const created = await res.json();
-      setProducts((prev) => [...prev, created]);
-      setShowForm(false);
+    try {
+      if (editing) {
+        const res = await fetch(`/api/products/${editing.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('Save failed');
+        setProducts((prev) =>
+          prev.map((p) => (p.id === editing.id ? { ...p, ...payload } : p))
+        );
+        setEditing(null);
+      } else {
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('Save failed');
+        const created = await res.json();
+        setProducts((prev) => [...prev, created]);
+        setShowForm(false);
+      }
+      setSaveMessage('Kit saved!');
+      setTimeout(() => setSaveMessage(null), 3000);
+      const fresh = await fetch('/api/products').then((r) => r.json());
+      setProducts(Array.isArray(fresh) ? fresh : []);
+      resetForm();
+    } catch (e) {
+      setSaveMessage('Save failed. Check that Blob storage is configured in Vercel.');
+      setTimeout(() => setSaveMessage(null), 5000);
     }
-    resetForm();
   };
 
   const deleteProduct = async (id: string) => {
@@ -73,8 +85,8 @@ export default function AdminPage() {
       description: '',
       longDescription: '',
       price: 0,
-      category: 'Solar Panels',
-      images: [''],
+      category: 'Solar Kits',
+      images: ['', '', ''],
       specifications: {},
       featured: false,
     });
@@ -101,13 +113,14 @@ export default function AdminPage() {
 
   const startEdit = (p: Product) => {
     setEditing(p);
+    const imgs = p.images?.filter(Boolean) || [];
     setNewProduct({
       name: p.name,
       description: p.description,
       longDescription: p.longDescription,
       price: p.price,
       category: p.category,
-      images: p.images?.length ? p.images : [''],
+      images: [imgs[0] || '', imgs[1] || '', imgs[2] || ''],
       specifications: p.specifications || {},
       featured: p.featured,
     });
@@ -117,7 +130,12 @@ export default function AdminPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="font-display text-4xl font-bold mb-2">Admin</h1>
-      <p className="text-slate-400 mb-8">Manage products, specifications, and images.</p>
+      <p className="text-slate-400 mb-8">Manage kits, specifications, and images.</p>
+      {saveMessage && (
+        <div className={`mb-6 px-4 py-2 rounded-lg ${saveMessage.includes('failed') ? 'bg-red-500/20 text-red-300' : 'bg-solar-leaf/20 text-solar-leaf'}`}>
+          {saveMessage}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-slate-400">Loading...</div>
@@ -132,12 +150,12 @@ export default function AdminPage() {
               }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-solar-leaf hover:bg-solar-forest transition-colors mb-8"
             >
-              <Plus className="w-5 h-5" /> Add Product
+              <Plus className="w-5 h-5" /> Add Kit
             </button>
           ) : (
             <div className="glass rounded-2xl p-8 mb-8">
               <h2 className="font-display text-xl font-semibold mb-6">
-                {editing ? 'Edit Product' : 'New Product'}
+                {editing ? 'Edit Kit' : 'New Kit'}
               </h2>
               <div className="grid gap-4">
                 <div>
@@ -156,6 +174,7 @@ export default function AdminPage() {
                     onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))}
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                   >
+                    <option>Solar Kits</option>
                     <option>Solar Panels</option>
                     <option>Inverters</option>
                     <option>Batteries</option>
@@ -191,73 +210,90 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Images</label>
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
-                        className="flex-1 text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-solar-sky file:text-white file:cursor-pointer"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const fd = new FormData();
-                          fd.append('file', file);
-                          try {
-                            const res = await fetch('/api/upload', { method: 'POST', body: fd });
-                            const data = await res.json();
-                            if (data.url) {
-                              setNewProduct((p) => ({
-                                ...p,
-                                images: [...(p.images || []).filter(Boolean), data.url],
-                              }));
-                            } else {
-                              alert(data.error || 'Upload failed');
-                            }
-                          } catch (err) {
-                            alert('Upload failed');
-                          }
-                          e.target.value = '';
-                        }}
-                      />
-                    </div>
-                    <textarea
-                      value={(newProduct.images || ['']).join('\n')}
-                      onChange={(e) =>
-                        setNewProduct((p) => ({
-                          ...p,
-                          images: e.target.value.split('\n').filter(Boolean),
-                        }))
-                      }
-                      rows={2}
-                      className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm"
-                      placeholder="Or paste image URLs, one per line"
-                    />
-                    {(newProduct.images || []).filter(Boolean).length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {(newProduct.images || []).filter(Boolean).map((url, i) => (
-                          <div key={i} className="relative group">
-                            <img
-                              src={url}
-                              alt=""
-                              className="w-16 h-16 object-cover rounded-lg border border-white/20"
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setNewProduct((p) => ({
-                                  ...p,
-                                  images: (p.images || []).filter((_, j) => j !== i),
-                                }))
-                              }
-                              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              ×
-                            </button>
+                  <label className="block text-sm text-slate-400 mb-3">Kit Images (up to 3 — scroll through on product page)</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[0, 1, 2].map((i) => {
+                      const imgs = newProduct.images || ['', '', ''];
+                      const url = imgs[i] || '';
+                      return (
+                        <div key={i} className="space-y-2">
+                          <span className="text-xs text-slate-500">Image {i + 1}</span>
+                          <div className="relative aspect-square rounded-lg overflow-hidden glass border border-white/20">
+                            {url ? (
+                              <>
+                                <img src={url} alt="" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const next = [...(newProduct.images || ['', '', ''])];
+                                    next[i] = '';
+                                    setNewProduct((p) => ({ ...p, images: next }));
+                                  }}
+                                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500/90 text-white text-sm hover:bg-red-500"
+                                >
+                                  ×
+                                </button>
+                              </>
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 p-2">
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/webp,image/gif"
+                                  className="text-xs file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-solar-sky file:text-white file:text-xs file:cursor-pointer"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const fd = new FormData();
+                                    fd.append('file', file);
+                                    try {
+                                      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                                      const data = await res.json();
+                                      if (data.url) {
+                                        const next = [...(newProduct.images || ['', '', ''])];
+                                        next[i] = data.url;
+                                        setNewProduct((p) => ({ ...p, images: next }));
+                                      } else {
+                                        alert(data.error || 'Upload failed');
+                                      }
+                                    } catch (err) {
+                                      alert('Upload failed');
+                                    }
+                                    e.target.value = '';
+                                  }}
+                                />
+                                <span className="text-xs mt-1">or</span>
+                                <input
+                                  type="text"
+                                  placeholder="Paste URL"
+                                  className="w-full mt-1 px-2 py-1 rounded text-xs bg-white/10 border border-white/20 text-white"
+                                  onBlur={(e) => {
+                                    const v = e.target.value.trim();
+                                    if (v) {
+                                      const next = [...(newProduct.images || ['', '', ''])];
+                                      next[i] = v;
+                                      setNewProduct((p) => ({ ...p, images: next }));
+                                      e.target.value = '';
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      const v = (e.target as HTMLInputElement).value.trim();
+                                      if (v) {
+                                        const next = [...(newProduct.images || ['', '', ''])];
+                                        next[i] = v;
+                                        setNewProduct((p) => ({ ...p, images: next }));
+                                        (e.target as HTMLInputElement).value = '';
+                                      }
+                                    }
+                                  }}
+                                />
+                              </div>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
                 <div>

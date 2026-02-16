@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ShoppingCart } from 'lucide-react';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
+import { useState } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -19,18 +20,35 @@ function formatPrice(cents: number) {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+  const imgs = product.images?.filter(Boolean) || [];
+  const [imgIndex, setImgIndex] = useState(0);
+  const displayImg = imgs[imgIndex] || imgs[0] || '/placeholder.svg';
+  const hasMultiple = imgs.length > 1;
 
   return (
     <div className="group glass rounded-2xl overflow-hidden hover:border-solar-sky/50 transition-all duration-300 hover:shadow-xl hover:shadow-solar-sky/10">
       <Link href={`/products/${product.slug}`} className="block">
-        <div className="relative aspect-square bg-solar-deep/50 overflow-hidden">
+        <div
+          className="relative aspect-square bg-solar-deep/50 overflow-hidden"
+          onMouseEnter={() => hasMultiple && setImgIndex((i) => (i + 1) % imgs.length)}
+        >
           <Image
-            src={product.images[0] || '/placeholder.svg'}
+            src={displayImg}
             alt={product.name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
+          {hasMultiple && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+              {imgs.map((_, i) => (
+                <span
+                  key={i}
+                  className={`w-1.5 h-1.5 rounded-full ${i === imgIndex ? 'bg-white' : 'bg-white/40'}`}
+                />
+              ))}
+            </div>
+          )}
           {product.featured && (
             <span className="absolute top-3 left-3 px-2 py-1 rounded-md bg-solar-leaf text-xs font-bold">
               Featured

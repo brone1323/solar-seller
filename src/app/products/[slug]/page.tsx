@@ -1,9 +1,8 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/AddToCartButton';
+import { ProductImageCarousel } from '@/components/ProductImageCarousel';
 import { readProducts } from '@/lib/productStorage';
-import { Product } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,26 +22,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </nav>
 
       <div className="grid lg:grid-cols-2 gap-12">
-        <div className="space-y-4">
-          <div className="relative aspect-square rounded-2xl overflow-hidden glass">
-            <Image
-              src={product.images[0] || '/placeholder.svg'}
-              alt={product.name}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          </div>
-          {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.slice(1, 5).map((img, i) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden">
-                  <Image src={img} alt="" fill className="object-cover" sizes="25vw" />
-                </div>
-              ))}
-            </div>
-          )}
+        <div>
+          <ProductImageCarousel images={product.images} productName={product.name} />
         </div>
 
         <div>
