@@ -1,32 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { readProducts, writeProducts } from '@/lib/productStorage';
 import { Product } from '@/types';
 
-const DATA_PATH = path.join(process.cwd(), 'src', 'data', 'products.json');
-
-function readProducts(): Product[] {
-  try {
-    const data = fs.readFileSync(DATA_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-function writeProducts(products: Product[]) {
-  fs.writeFileSync(DATA_PATH, JSON.stringify(products, null, 2));
-}
-
 export async function GET() {
-  const products = readProducts();
+  const products = await readProducts();
   return NextResponse.json(products);
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const products = readProducts();
+    const products = await readProducts();
 
     const newProduct: Product = {
       id: body.id || `p-${Date.now()}`,
@@ -48,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     products.push(newProduct);
-    writeProducts(products);
+    await writeProducts(products);
     return NextResponse.json(newProduct);
   } catch (e) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });

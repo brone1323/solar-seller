@@ -1,25 +1,10 @@
 import { ProductCard } from '@/components/ProductCard';
-import productsData from '@/data/products.json';
-import { Product } from '@/types';
+import { readProducts } from '@/lib/productStorage';
 
 export const dynamic = 'force-dynamic';
 
-async function getProducts(): Promise<Product[]> {
-  try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const res = await fetch(`${base}/api/products`, { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      return data.products || data;
-    }
-  } catch (e) {
-    console.error('API products fetch failed', e);
-  }
-  return productsData as unknown as Product[];
-}
-
 export default async function ProductsPage() {
-  const products = await getProducts();
+  const products = await readProducts();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

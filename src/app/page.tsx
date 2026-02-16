@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { ArrowRight, Zap, Shield, MapPin } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
-import productsData from '@/data/products.json';
+import { readProducts } from '@/lib/productStorage';
 import { Product } from '@/types';
 
-const featuredProducts = (productsData as unknown as Product[]).filter((p) => p.featured);
+export const dynamic = 'force-dynamic';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const products = await readProducts();
+  const featuredProducts = products.filter((p) => p.featured);
   return (
     <div>
       {/* Hero Section */}

@@ -2,29 +2,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/AddToCartButton';
-import productsData from '@/data/products.json';
+import { readProducts } from '@/lib/productStorage';
 import { Product } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-async function getProduct(slug: string): Promise<Product | null> {
-  try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const res = await fetch(`${base}/api/products`, { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      const products: Product[] = data.products || data;
-      return products.find((p: Product) => p.slug === slug) || null;
-    }
-  } catch (e) {
-    console.error('API products fetch failed', e);
-  }
-  return (productsData as unknown as Product[]).find((p) => p.slug === slug) || null;
-}
-
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const products = await readProducts();
+  const product = products.find((p) => p.slug === slug) ?? null;
 
   if (!product) notFound();
 
