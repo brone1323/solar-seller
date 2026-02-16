@@ -58,14 +58,21 @@ function PayPalButtonsWrapper({ onSuccess }: { onSuccess: () => void }) {
           return data.orderID;
         }}
         onApprove={async ({ orderID }) => {
-          const res = await fetch('/api/paypal/capture-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderID }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Payment failed');
-          onSuccess();
+          try {
+            const res = await fetch('/api/paypal/capture-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderID }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              alert(data.error || 'Payment failed. Please try again.');
+              return;
+            }
+            onSuccess();
+          } catch (err) {
+            alert(err instanceof Error ? err.message : 'Payment failed. Please try again.');
+          }
         }}
         onError={(err) => {
           console.error('PayPal error:', err);

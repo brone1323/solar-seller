@@ -5,11 +5,14 @@ const PAYPAL_API = process.env.PAYPAL_MODE === 'live'
   : 'https://api-m.sandbox.paypal.com';
 
 async function getAccessToken(): Promise<string> {
-  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const clientId = process.env.PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error('PayPal credentials not configured. Add PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET to .env.local');
+    throw new Error(
+      'PayPal credentials not configured. Add PAYPAL_CLIENT_SECRET to Vercel env vars. ' +
+      'PAYPAL_CLIENT_ID is optional if NEXT_PUBLIC_PAYPAL_CLIENT_ID is set.'
+    );
   }
 
   const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
@@ -78,7 +81,13 @@ export async function POST(request: NextRequest) {
 
     if (!res.ok) {
       const err = await res.text();
-      return NextResponse.json({ error: `PayPal create order failed: ${err}` }, { status: 500 });
+      const hint = res.status === 401 || res.status === 404
+        ? ' Check PAYPAL_CLIENT_SECRET and PAYPAL_MODE in Vercel (live vs sandbox).'
+        : '';
+      return NextResponse.json(
+        { error: `PayPal create order failed: ${err}${hint}` },
+        { status: 500 }
+      );
     }
 
     const data = await res.json();
