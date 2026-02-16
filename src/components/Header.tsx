@@ -9,7 +9,6 @@ const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/products', label: 'Shop' },
   { href: '/why-solar-diy', label: 'Why Solar-DIY' },
-  { href: '/admin', label: 'Admin' },
 ];
 
 export function Header() {
@@ -42,6 +41,13 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-4">
+            <Link
+              href="/admin"
+              className="text-white/0 hover:text-white/30 text-sm transition-colors"
+              aria-label="Admin"
+            >
+              Admin
+            </Link>
             <Link
               href="/cart"
               className="relative p-2 rounded-lg hover:bg-white/10 transition-colors"
@@ -76,6 +82,14 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href="/admin"
+                className="py-2 text-white/0 hover:text-white/30 text-sm"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Admin"
+              >
+                Admin
+              </Link>
             </div>
           </nav>
         )}
