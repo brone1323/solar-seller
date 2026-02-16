@@ -76,7 +76,7 @@ export async function writeProducts(products: Product[]): Promise<void> {
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
   if (blobToken) {
     try {
-      await put(BLOB_PATH, json, { access: 'public', addRandomSuffix: false });
+      await put(BLOB_PATH, json, { access: 'public', addRandomSuffix: false, allowOverwrite: true });
       return;
     } catch (e) {
       console.error('Blob write error:', e);
