@@ -151,18 +151,19 @@ export default function CheckoutPage() {
           )}
           {step === 2 && (
             <div className="glass rounded-2xl p-8">
-              <h2 className="font-display text-xl font-semibold mb-6">Payment</h2>
+              <h2 className="font-display text-xl font-semibold mb-2">Payment</h2>
               <p className="text-slate-400 mb-6">
                 Pay securely with your PayPal account.
               </p>
-              <div className="mb-6">
+              <div className="mb-6 rounded-xl overflow-hidden">
                 <PayPalCheckout onSuccess={handlePayPalSuccess} />
               </div>
               <button
+                type="button"
                 onClick={() => setStep(1)}
-                className="w-full py-3 rounded-xl glass hover:bg-white/10 transition-colors"
+                className="w-full py-2 text-slate-400 hover:text-white transition-colors text-sm"
               >
-                Back to Shipping
+                ← Back to Shipping
               </button>
             </div>
           )}

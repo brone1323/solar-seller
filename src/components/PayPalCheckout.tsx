@@ -1,6 +1,6 @@
 'use client';
 
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import { useCart } from '@/context/CartContext';
 
 const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
@@ -9,27 +9,20 @@ interface PayPalCheckoutProps {
   onSuccess: () => void;
 }
 
-export function PayPalCheckout({ onSuccess }: PayPalCheckoutProps) {
+function PayPalButtonsWrapper({ onSuccess }: { onSuccess: () => void }) {
   const { items, subtotal } = useCart();
+  const [{ isPending }] = usePayPalScriptReducer();
 
-  if (!clientId) {
+  if (isPending) {
     return (
-      <div className="rounded-xl p-4 bg-amber-500/20 border border-amber-500/50">
-        <p className="text-amber-200 text-sm">
-          Add <code className="bg-black/20 px-1 rounded">NEXT_PUBLIC_PAYPAL_CLIENT_ID</code> to your <code className="bg-black/20 px-1 rounded">.env.local</code> to enable PayPal checkout.
-        </p>
+      <div className="min-h-[120px] flex items-center justify-center rounded-xl bg-white/5 border border-white/10">
+        <p className="text-slate-400">Loading PayPal…</p>
       </div>
     );
   }
 
   return (
-    <PayPalScriptProvider
-      options={{
-        clientId,
-        currency: 'CAD',
-        intent: 'capture',
-      }}
-    >
+    <div className="min-h-[120px] rounded-xl bg-white p-4 flex items-center justify-center">
       <PayPalButtons
         style={{
           layout: 'vertical',
@@ -62,6 +55,30 @@ export function PayPalCheckout({ onSuccess }: PayPalCheckoutProps) {
           alert('Payment failed. Please try again.');
         }}
       />
+    </div>
+  );
+}
+
+export function PayPalCheckout({ onSuccess }: PayPalCheckoutProps) {
+  if (!clientId) {
+    return (
+      <div className="rounded-xl p-4 bg-amber-500/20 border border-amber-500/50">
+        <p className="text-amber-200 text-sm">
+          Add <code className="bg-black/20 px-1 rounded">NEXT_PUBLIC_PAYPAL_CLIENT_ID</code> to your Vercel Environment Variables to enable PayPal checkout.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <PayPalScriptProvider
+      options={{
+        clientId,
+        currency: 'CAD',
+        intent: 'capture',
+      }}
+    >
+      <PayPalButtonsWrapper onSuccess={onSuccess} />
     </PayPalScriptProvider>
   );
 }
