@@ -5,9 +5,7 @@ export interface BlogArticle {
   cta: string;
 }
 
-export const blogIntro = `Welcome to **Understanding Solar** — a practical, no-fluff blog that explains how solar really works, what drives costs, and how homeowners can make smart decisions (whether you hire it out or do it yourself). The goal is simple: help you buy better equipment, avoid expensive mistakes, and get your system approved the right way.
-
-This content reinforces why Solar-DIY.com exists: design + equipment + permitting support so DIYers can lock in long-term energy savings with quality components.`;
+export const blogIntro = `Welcome to **Understanding Solar** — a practical, no-fluff blog that explains how solar really works, what drives costs, and how homeowners can make smart decisions (whether you hire it out or do it yourself). The goal is simple: help you buy better equipment, avoid expensive mistakes, and get your system approved the right way.`;
 
 export const blogArticles: BlogArticle[] = [
   {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeBlogArticles, getBlogArticlesWithFallback, seedBlogFromStaticIfEmpty } from '@/lib/blogStorage';
+import { isAuthenticated } from '@/lib/auth';
 import type { BlogArticle } from '@/lib/blogStorage';
 
 export async function GET() {
@@ -8,6 +9,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const body = await request.json();
     const articles = await seedBlogFromStaticIfEmpty();

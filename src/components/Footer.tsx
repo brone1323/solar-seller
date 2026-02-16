@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sun, Mail, Phone } from 'lucide-react';
+import { Sun, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -29,7 +29,6 @@ export function Footer() {
             <h4 className="font-display font-semibold mb-4">Contact</h4>
             <ul className="space-y-2 text-slate-400">
               <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> info@solardiystore.ca</li>
-              <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> 1-800-SOLAR-DIY</li>
             </ul>
           </div>
         </div>

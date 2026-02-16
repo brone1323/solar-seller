@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readProducts, writeProducts } from '@/lib/productStorage';
+import { isAuthenticated } from '@/lib/auth';
 import { Product } from '@/types';
 
 export async function GET() {
@@ -8,6 +9,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const body = await request.json();
     const products = await readProducts();

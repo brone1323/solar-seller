@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, FileText, Package } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, FileText, Package, LogOut } from 'lucide-react';
 import { Product } from '@/types';
+
+const authFetch = (url: string, init?: RequestInit) =>
+  fetch(url, { ...init, credentials: 'include' as RequestCredentials });
 
 type BlogArticle = {
   id?: string;
@@ -13,6 +16,11 @@ type BlogArticle = {
 };
 
 export default function AdminPage() {
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+
   const [tab, setTab] = useState<'kits' | 'blog'>('kits');
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -43,21 +51,54 @@ export default function AdminPage() {
   });
 
   useEffect(() => {
-    fetch('/api/products')
+    authFetch('/api/auth/session')
+      .then((r) => r.json())
+      .then((data) => {
+        setAuthenticated(!!data.authenticated);
+        setAuthChecked(true);
+      })
+      .catch(() => setAuthChecked(true));
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    const res = await authFetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(loginForm),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setLoginError(data.error || 'Login failed');
+      return;
+    }
+    setAuthenticated(true);
+    setLoginForm({ username: '', password: '' });
+  };
+
+  const handleLogout = async () => {
+    await authFetch('/api/auth/logout', { method: 'POST' });
+    setAuthenticated(false);
+  };
+
+  useEffect(() => {
+    if (!authenticated) return;
+    authFetch('/api/products')
       .then((r) => r.json())
       .then((data) => setProducts(Array.isArray(data) ? data : []))
       .finally(() => setLoading(false));
-  }, []);
+  }, [authenticated]);
 
   useEffect(() => {
-    if (tab === 'blog') {
+    if (tab === 'blog' && authenticated) {
       setBlogLoading(true);
-      fetch('/api/blog')
+      authFetch('/api/blog')
         .then((r) => r.json())
         .then((data) => setBlogPosts(Array.isArray(data) ? data : []))
         .finally(() => setBlogLoading(false));
     }
-  }, [tab]);
+  }, [tab, authenticated]);
 
   const saveProduct = async () => {
     if (!newProduct.name) return;
@@ -69,7 +110,7 @@ export default function AdminPage() {
     };
     try {
       if (editing) {
-        const res = await fetch(`/api/products/${editing.id}`, {
+        const res = await authFetch(`/api/products/${editing.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -83,7 +124,7 @@ export default function AdminPage() {
         );
         setEditing(null);
       } else {
-        const res = await fetch('/api/products', {
+        const res = await authFetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -98,7 +139,7 @@ export default function AdminPage() {
       }
       setSaveMessage('Kit saved!');
       setTimeout(() => setSaveMessage(null), 3000);
-      const fresh = await fetch('/api/products').then((r) => r.json());
+      const fresh = await authFetch('/api/products').then((r) => r.json());
       setProducts(Array.isArray(fresh) ? fresh : []);
       resetForm();
     } catch (e) {
@@ -109,7 +150,7 @@ export default function AdminPage() {
 
   const deleteProduct = async (id: string) => {
     if (!confirm('Delete this product?')) return;
-    const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+    const res = await authFetch(`/api/products/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setProducts((prev) => prev.filter((p) => p.id !== id));
       setEditing(null);
@@ -119,7 +160,7 @@ export default function AdminPage() {
       const data = await res.json().catch(() => ({}));
       setSaveMessage(data.error || 'Delete failed');
       setTimeout(() => setSaveMessage(null), 5000);
-      const fresh = await fetch('/api/products').then((r) => r.json());
+      const fresh = await authFetch('/api/products').then((r) => r.json());
       setProducts(Array.isArray(fresh) ? fresh : []);
     }
   };
@@ -180,14 +221,14 @@ export default function AdminPage() {
     const payload = { ...newBlog, slug, sections };
     try {
       if (editingBlog?.id) {
-        const res = await fetch(`/api/blog/${editingBlog.id}`, {
+        const res = await authFetch(`/api/blog/${editingBlog.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Save failed');
       } else {
-        const res = await fetch('/api/blog', {
+        const res = await authFetch('/api/blog', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -196,7 +237,7 @@ export default function AdminPage() {
       }
       setSaveMessage('Article saved!');
       setTimeout(() => setSaveMessage(null), 3000);
-      const fresh = await fetch('/api/blog').then((r) => r.json());
+      const fresh = await authFetch('/api/blog').then((r) => r.json());
       setBlogPosts(Array.isArray(fresh) ? fresh : []);
       setEditingBlog(null);
       setShowBlogForm(false);
@@ -209,7 +250,7 @@ export default function AdminPage() {
 
   const deleteBlog = async (id: string) => {
     if (!confirm('Delete this article?')) return;
-    const res = await fetch(`/api/blog/${id}`, { method: 'DELETE' });
+    const res = await authFetch(`/api/blog/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setBlogPosts((prev) => prev.filter((b) => b.id !== id));
       setEditingBlog(null);
@@ -218,7 +259,7 @@ export default function AdminPage() {
     } else {
       setSaveMessage((await res.json().catch(() => ({}))).error || 'Delete failed');
       setTimeout(() => setSaveMessage(null), 5000);
-      const fresh = await fetch('/api/blog').then((r) => r.json());
+      const fresh = await authFetch('/api/blog').then((r) => r.json());
       setBlogPosts(Array.isArray(fresh) ? fresh : []);
     }
   };
@@ -256,9 +297,66 @@ export default function AdminPage() {
     }));
   };
 
+  if (!authChecked) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <p className="text-slate-400">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20">
+        <div className="glass rounded-2xl p-8">
+          <h1 className="font-display text-2xl font-bold mb-6">Admin Login</h1>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">Username</label>
+              <input
+                type="text"
+                value={loginForm.username}
+                onChange={(e) => setLoginForm((f) => ({ ...f, username: e.target.value }))}
+                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white"
+                autoComplete="username"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">Password</label>
+              <input
+                type="password"
+                value={loginForm.password}
+                onChange={(e) => setLoginForm((f) => ({ ...f, password: e.target.value }))}
+                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white"
+                autoComplete="current-password"
+              />
+            </div>
+            {loginError && (
+              <p className="text-red-400 text-sm">{loginError}</p>
+            )}
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold hover:opacity-90"
+            >
+              Sign in
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="font-display text-4xl font-bold mb-2">Admin</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="font-display text-4xl font-bold">Admin</h1>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg glass hover:bg-white/10 text-slate-400 hover:text-white"
+        >
+          <LogOut className="w-5 h-5" /> Log out
+        </button>
+      </div>
       <div className="flex gap-4 mb-8">
         <button
           onClick={() => setTab('kits')}
@@ -518,7 +616,7 @@ export default function AdminPage() {
                                     const fd = new FormData();
                                     fd.append('file', file);
                                     try {
-                                      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                                      const res = await authFetch('/api/upload', { method: 'POST', body: fd });
                                       const data = await res.json();
                                       if (data.url) {
                                         const next = [...(newProduct.images || ['', '', ''])];

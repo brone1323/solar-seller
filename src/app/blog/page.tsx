@@ -26,11 +26,8 @@ export default async function BlogPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="font-display text-4xl font-bold mb-4">Understanding Solar</h1>
       <div className="prose prose-invert prose-slate max-w-none mb-12">
-        <p className="text-slate-300 leading-relaxed mb-4">
-          {renderIntro(blogIntro.split('\n\n')[0])}
-        </p>
-        <p className="text-slate-400 text-lg leading-relaxed">
-          {blogIntro.split('\n\n')[1]}
+        <p className="text-slate-300 leading-relaxed">
+          {renderIntro(blogIntro)}
         </p>
       </div>
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readProducts, writeProducts } from '@/lib/productStorage';
+import { isAuthenticated } from '@/lib/auth';
 import { Product } from '@/types';
 
 export async function GET(
@@ -17,6 +18,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const { id } = await params;
   const body = await request.json();
   const products = await readProducts();
@@ -41,9 +45,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const { id } = await params;
   const products = await readProducts();
   const filtered = products.filter((p) => p.id !== id && p.slug !== id);
