@@ -151,7 +151,7 @@ export default function CheckoutPage() {
                 <select
                   value={form.province}
                   onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))}
-                  className="px-4 py-3 rounded-lg bg-white/10 border border-white/20"
+                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white [&>option]:bg-slate-900 [&>option]:text-white"
                 >
                   <option value="">Province</option>
                   <option>AB</option>

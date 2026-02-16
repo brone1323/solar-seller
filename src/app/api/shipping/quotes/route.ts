@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Configurable via env vars (values in cents). Fallbacks for Canadian solar equipment.
-const FREE_SHIPPING_THRESHOLD = parseInt(process.env.SHIPPING_FREE_THRESHOLD || '50000', 10); // $500
-const STANDARD_RATE = parseInt(process.env.SHIPPING_STANDARD_RATE || '4900', 10); // $49
-const EXPRESS_RATE = parseInt(process.env.SHIPPING_EXPRESS_RATE || '9900', 10); // $99
+// Configurable via env var (value in cents). Default $500.
+const DESIGN_PACKAGE_RATE = parseInt(process.env.SHIPPING_DESIGN_PACKAGE_RATE || '50000', 10);
 
 export interface ShippingQuote {
   id: string;
@@ -20,19 +18,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid subtotal' }, { status: 400 });
     }
 
-    const quotes: ShippingQuote[] = [];
-
-    if (subtotal >= FREE_SHIPPING_THRESHOLD) {
-      quotes.push(
-        { id: 'free', name: 'Free shipping', price: 0, estimatedDays: '7–10 business days' },
-        { id: 'express', name: 'Express shipping', price: EXPRESS_RATE, estimatedDays: '2–3 business days' }
-      );
-    } else {
-      quotes.push(
-        { id: 'standard', name: 'Standard shipping', price: STANDARD_RATE, estimatedDays: '5–7 business days' },
-        { id: 'express', name: 'Express shipping', price: EXPRESS_RATE, estimatedDays: '2–3 business days' }
-      );
-    }
+    const quotes: ShippingQuote[] = [
+      {
+        id: 'design-package',
+        name: 'Shipped to your door with full design package within 3 weeks',
+        price: DESIGN_PACKAGE_RATE,
+        estimatedDays: 'Within 3 weeks',
+      },
+    ];
 
     return NextResponse.json({ quotes });
   } catch (e) {
