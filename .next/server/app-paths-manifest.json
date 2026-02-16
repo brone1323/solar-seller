@@ -1,15 +1,15 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/admin/page": "app/admin/page.js",
-  "/api/products/[id]/route": "app/api/products/[id]/route.js",
   "/api/products/route": "app/api/products/route.js",
   "/api/paypal/capture-order/route": "app/api/paypal/capture-order/route.js",
-  "/api/upload/route": "app/api/upload/route.js",
-  "/incentives/page": "app/incentives/page.js",
   "/cart/page": "app/cart/page.js",
-  "/checkout/page": "app/checkout/page.js",
+  "/api/upload/route": "app/api/upload/route.js",
   "/api/paypal/create-order/route": "app/api/paypal/create-order/route.js",
-  "/products/page": "app/products/page.js",
+  "/api/products/[id]/route": "app/api/products/[id]/route.js",
+  "/why-solar-diy/page": "app/why-solar-diy/page.js",
+  "/checkout/page": "app/checkout/page.js",
   "/page": "app/page.js",
-  "/products/[slug]/page": "app/products/[slug]/page.js"
+  "/products/[slug]/page": "app/products/[slug]/page.js",
+  "/products/page": "app/products/page.js"
 }

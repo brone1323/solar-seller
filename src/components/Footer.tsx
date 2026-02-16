@@ -20,7 +20,7 @@ export function Footer() {
             <h4 className="font-display font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               <li><Link href="/products" className="text-slate-400 hover:text-white">Shop</Link></li>
-              <li><Link href="/incentives" className="text-slate-400 hover:text-white">Canadian Incentives</Link></li>
+              <li><Link href="/why-solar-diy" className="text-slate-400 hover:text-white">Why Solar-DIY</Link></li>
               <li><Link href="/cart" className="text-slate-400 hover:text-white">Cart</Link></li>
             </ul>
           </div>

@@ -10,7 +10,7 @@ const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
 
 export const metadata: Metadata = {
   title: 'Solar DIY | Premium Solar Equipment & Canadian Incentives',
-  description: 'Your complete source for DIY solar equipment. Panels, inverters, batteries, and mounting systems. Plus discover all Canadian solar incentives by province.',
+  description: 'Your complete source for DIY solar equipment. Panels, inverters, batteries, and mounting systems. Equipment plus directions, drawings, and support.',
 };
 
 export default function RootLayout({

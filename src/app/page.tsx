@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Zap, Shield, MapPin } from 'lucide-react';
+import { ArrowRight, Zap, Shield, MapPin, Info } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
 import { readProducts } from '@/lib/productStorage';
 import { Product } from '@/types';
@@ -25,7 +25,7 @@ export default async function HomePage() {
             </h1>
             <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
               Premium solar panels, inverters, batteries, and mounting systems for your DIY installation.
-              Save with Canadian incentives—find rebates and financing in your province.
+              Complete DIY solar packages with directions, drawings, and support.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -35,10 +35,10 @@ export default async function HomePage() {
                 Shop Equipment <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
-                href="/incentives"
+                href="/why-solar-diy"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl glass border border-white/20 font-semibold hover:bg-white/10 transition-colors"
               >
-                <MapPin className="w-5 h-5" /> Canadian Incentives
+                <Info className="w-5 h-5" /> Why Solar-DIY
               </Link>
             </div>
           </div>
@@ -66,8 +66,8 @@ export default async function HomePage() {
             <div className="w-16 h-16 rounded-2xl bg-solar-ocean/20 flex items-center justify-center mx-auto mb-4">
               <MapPin className="w-8 h-8 text-solar-ocean" />
             </div>
-            <h3 className="font-display font-semibold text-xl mb-2">Canadian Incentives</h3>
-            <p className="text-slate-400">Discover rebates, loans, and tax credits available in your province.</p>
+            <h3 className="font-display font-semibold text-xl mb-2">Complete Packages</h3>
+            <p className="text-slate-400">Equipment plus directions, drawings, and live expert support.</p>
           </div>
         </div>
       </section>
@@ -94,7 +94,7 @@ export default async function HomePage() {
             Ready to Go Solar?
           </h2>
           <p className="text-slate-300 max-w-2xl mx-auto mb-8">
-            Explore our full catalog of solar equipment and find the perfect incentives for your location.
+            Explore our full catalog of solar equipment and complete DIY packages.
           </p>
           <Link
             href="/products"
