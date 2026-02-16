@@ -80,9 +80,19 @@ export default function AdminPage() {
 
   const deleteProduct = async (id: string) => {
     if (!confirm('Delete this product?')) return;
-    await fetch(`/api/products/${id}`, { method: 'DELETE' });
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    setEditing(null);
+    const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setEditing(null);
+      setSaveMessage('Deleted');
+      setTimeout(() => setSaveMessage(null), 2000);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setSaveMessage(data.error || 'Delete failed');
+      setTimeout(() => setSaveMessage(null), 5000);
+      const fresh = await fetch('/api/products').then((r) => r.json());
+      setProducts(Array.isArray(fresh) ? fresh : []);
+    }
   };
 
   const resetForm = () => {

@@ -39,9 +39,9 @@ export async function readProducts(): Promise<Product[]> {
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     try {
       const { blobs } = await list({ prefix: 'products/' });
-      const dataBlob = blobs.find((b) => b.pathname === BLOB_PATH);
+      const dataBlob = blobs.find((b) => (b.pathname && (b.pathname === BLOB_PATH || b.pathname.endsWith('data.json'))));
       if (dataBlob?.url) {
-        const res = await fetch(dataBlob.url);
+        const res = await fetch(dataBlob.url, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           return Array.isArray(data) ? data : [];
