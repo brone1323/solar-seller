@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
     await writeProducts(products);
     return NextResponse.json(newProduct);
   } catch (e) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    const message = e instanceof Error ? e.message : 'Save failed';
+    console.error('Products save error:', e);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

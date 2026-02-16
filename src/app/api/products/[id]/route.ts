@@ -30,8 +30,14 @@ export async function PUT(
     updatedAt: new Date().toISOString(),
   };
   products[idx] = updated;
-  await writeProducts(products);
-  return NextResponse.json(updated);
+  try {
+    await writeProducts(products);
+    return NextResponse.json(updated);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Save failed';
+    console.error('Products update error:', e);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function DELETE(
@@ -44,6 +50,12 @@ export async function DELETE(
   if (filtered.length === products.length) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  await writeProducts(filtered);
-  return NextResponse.json({ success: true });
+  try {
+    await writeProducts(filtered);
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Delete failed';
+    console.error('Products delete error:', e);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

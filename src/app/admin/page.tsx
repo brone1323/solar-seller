@@ -45,7 +45,10 @@ export default function AdminPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error('Save failed');
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Save failed');
+        }
         setProducts((prev) =>
           prev.map((p) => (p.id === editing.id ? { ...p, ...payload } : p))
         );
@@ -56,7 +59,10 @@ export default function AdminPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error('Save failed');
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Save failed');
+        }
         const created = await res.json();
         setProducts((prev) => [...prev, created]);
         setShowForm(false);
@@ -67,8 +73,8 @@ export default function AdminPage() {
       setProducts(Array.isArray(fresh) ? fresh : []);
       resetForm();
     } catch (e) {
-      setSaveMessage('Save failed. Check that Blob storage is configured in Vercel.');
-      setTimeout(() => setSaveMessage(null), 5000);
+      setSaveMessage(e instanceof Error ? e.message : 'Save failed');
+      setTimeout(() => setSaveMessage(null), 6000);
     }
   };
 

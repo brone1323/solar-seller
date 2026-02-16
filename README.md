@@ -42,7 +42,9 @@ Visit `/admin` to add equipment, specifications, descriptions, and images. You c
 - **Upload images** – Choose files (JPEG, PNG, WebP, GIF, max 4MB) – stored in Vercel Blob
 - **Or paste URLs** – External image links still work
 
-**Image uploads:** Add Blob storage in your Vercel project (Storage tab) to enable uploads. The `BLOB_READ_WRITE_TOKEN` is set automatically.
+**Product storage:** Add **Upstash Redis** (Vercel Marketplace → Upstash → Connect to solar-seller). This stores kit data and works reliably. Blob is a fallback.
+
+**Image uploads:** Add Blob storage in your Vercel project (Storage tab) to enable image uploads.
 
 ## WooCommerce Integration
 
