@@ -11,12 +11,29 @@ interface PayPalCheckoutProps {
 
 function PayPalButtonsWrapper({ onSuccess }: { onSuccess: () => void }) {
   const { items, subtotal } = useCart();
-  const [{ isPending }] = usePayPalScriptReducer();
+  const [{ isPending, isRejected }] = usePayPalScriptReducer();
 
   if (isPending) {
     return (
       <div className="min-h-[120px] flex items-center justify-center rounded-xl bg-white/5 border border-white/10">
         <p className="text-slate-400">Loading PayPal…</p>
+      </div>
+    );
+  }
+
+  if (isRejected) {
+    return (
+      <div className="min-h-[120px] flex flex-col items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/50 p-4 gap-2">
+        <p className="text-amber-200 text-sm font-medium">PayPal could not load</p>
+        <p className="text-amber-200/80 text-xs text-center">
+          Check your connection or try again. You can also contact us to complete your order.
+        </p>
+        <a
+          href="mailto:info@solardiystore.ca"
+          className="text-solar-leaf hover:underline text-sm mt-1"
+        >
+          info@solardiystore.ca
+        </a>
       </div>
     );
   }
@@ -76,6 +93,7 @@ export function PayPalCheckout({ onSuccess }: PayPalCheckoutProps) {
         clientId,
         currency: 'CAD',
         intent: 'capture',
+        components: 'buttons',
       }}
     >
       <PayPalButtonsWrapper onSuccess={onSuccess} />
