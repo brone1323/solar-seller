@@ -36,13 +36,26 @@ async function getAccessToken(): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { items, subtotal } = await request.json();
+    const { items, subtotal, shipping = 0 } = await request.json();
 
     if (!items?.length || subtotal === undefined) {
       return NextResponse.json({ error: 'Invalid cart data' }, { status: 400 });
     }
 
+    const shippingVal = Math.max(0, Number(shipping) || 0);
+    const totalCents = subtotal + shippingVal;
+    const total = (totalCents / 100).toFixed(2);
+    const itemTotal = (subtotal / 100).toFixed(2);
+    const shippingTotal = (shippingVal / 100).toFixed(2);
+
     const accessToken = await getAccessToken();
+
+    const breakdown: Record<string, { currency_code: string; value: string }> = {
+      item_total: { currency_code: 'CAD', value: itemTotal },
+    };
+    if (shippingVal > 0) {
+      breakdown.shipping = { currency_code: 'CAD', value: shippingTotal };
+    }
 
     const orderPayload = {
       intent: 'CAPTURE',
@@ -50,13 +63,8 @@ export async function POST(request: NextRequest) {
         {
           amount: {
             currency_code: 'CAD',
-            value: (subtotal / 100).toFixed(2),
-            breakdown: {
-              item_total: {
-                currency_code: 'CAD',
-                value: (subtotal / 100).toFixed(2),
-              },
-            },
+            value: total,
+            breakdown,
           },
           items: items.map(({ product, quantity }: { product: { name: string; price: number }; quantity: number }) => ({
             name: product.name,

@@ -1,12 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { PayPalCheckout } from '@/components/PayPalCheckout';
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(cents / 100);
+}
+
+interface ShippingQuote {
+  id: string;
+  name: string;
+  price: number;
+  estimatedDays?: string;
 }
 
 export default function CheckoutPage() {
@@ -17,6 +24,9 @@ export default function CheckoutPage() {
     clearCart();
   };
   const [step, setStep] = useState(1);
+  const [quotes, setQuotes] = useState<ShippingQuote[]>([]);
+  const [selectedShipping, setSelectedShipping] = useState<ShippingQuote | null>(null);
+  const [quotesLoading, setQuotesLoading] = useState(false);
   const [form, setForm] = useState({
     email: '',
     firstName: '',
@@ -27,6 +37,31 @@ export default function CheckoutPage() {
     postalCode: '',
   });
   const [complete, setComplete] = useState(false);
+
+  useEffect(() => {
+    if (step !== 2) return;
+    setQuotesLoading(true);
+    setQuotes([]);
+    setSelectedShipping(null);
+    fetch('/api/shipping/quotes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        postalCode: form.postalCode,
+        province: form.province,
+        subtotal,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.quotes?.length) {
+          setQuotes(data.quotes);
+          setSelectedShipping(data.quotes[0]);
+        }
+      })
+      .catch(() => setQuotes([]))
+      .finally(() => setQuotesLoading(false));
+  }, [step, form.postalCode, form.province, subtotal]);
 
   if (items.length === 0 && !complete) {
     return (
@@ -145,22 +180,75 @@ export default function CheckoutPage() {
                 onClick={() => setStep(2)}
                 className="mt-8 w-full py-4 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold hover:opacity-90"
               >
-                Continue to Payment
+                Continue to Shipping
               </button>
             </div>
           )}
           {step === 2 && (
+            <div className="glass rounded-2xl p-8">
+              <h2 className="font-display text-xl font-semibold mb-2">Shipping</h2>
+              <p className="text-slate-400 mb-6">
+                Choose a shipping method for your order.
+              </p>
+              {quotesLoading ? (
+                <p className="text-slate-400 py-8 text-center">Loading shipping options…</p>
+              ) : quotes.length === 0 ? (
+                <p className="text-amber-200/80 text-sm py-4">No shipping options. Check your address.</p>
+              ) : (
+                <div className="space-y-3 mb-6">
+                  {quotes.map((q) => (
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => setSelectedShipping(q)}
+                      className={`w-full text-left p-4 rounded-xl border transition-colors ${
+                        selectedShipping?.id === q.id
+                          ? 'border-solar-leaf bg-solar-leaf/10'
+                          : 'border-white/20 bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{q.name}</span>
+                        <span className="text-solar-leaf">{formatPrice(q.price)}</span>
+                      </div>
+                      {q.estimatedDays && (
+                        <p className="text-slate-400 text-sm mt-1">{q.estimatedDays}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => setStep(3)}
+                disabled={!selectedShipping}
+                className="mt-6 w-full py-4 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Continue to Payment
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="mt-4 w-full py-2 text-slate-400 hover:text-white transition-colors text-sm"
+              >
+                ← Back to Address
+              </button>
+            </div>
+          )}
+          {step === 3 && (
             <div className="glass rounded-2xl p-8">
               <h2 className="font-display text-xl font-semibold mb-2">Payment</h2>
               <p className="text-slate-400 mb-6">
                 Pay securely with your PayPal account.
               </p>
               <div className="mb-6 rounded-xl overflow-hidden">
-                <PayPalCheckout onSuccess={handlePayPalSuccess} />
+                <PayPalCheckout
+                  onSuccess={handlePayPalSuccess}
+                  shippingCost={selectedShipping?.price ?? 0}
+                />
               </div>
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => setStep(2)}
                 className="w-full py-2 text-slate-400 hover:text-white transition-colors text-sm"
               >
                 ← Back to Shipping
@@ -182,10 +270,22 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
-            <div className="border-t border-white/10 pt-4">
-              <div className="flex justify-between font-bold">
+            <div className="border-t border-white/10 pt-4 space-y-2">
+              <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
-                <span className="text-solar-leaf">{formatPrice(subtotal)}</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              {step >= 2 && selectedShipping && (
+                <div className="flex justify-between text-sm">
+                  <span>Shipping ({selectedShipping.name})</span>
+                  <span>{formatPrice(selectedShipping.price)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold pt-2">
+                <span>Total</span>
+                <span className="text-solar-leaf">
+                  {formatPrice(subtotal + (selectedShipping?.price ?? 0))}
+                </span>
               </div>
             </div>
           </div>
