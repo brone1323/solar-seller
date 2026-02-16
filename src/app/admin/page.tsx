@@ -1,12 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, FileText, Package } from 'lucide-react';
 import { Product } from '@/types';
 
-const ADMIN_KEY = 'solar-admin-2024';
+type BlogArticle = {
+  id?: string;
+  slug: string;
+  title: string;
+  sections: { heading: string; content: string[] }[];
+  cta: string;
+};
 
 export default function AdminPage() {
+  const [tab, setTab] = useState<'kits' | 'blog'>('kits');
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -23,12 +31,33 @@ export default function AdminPage() {
     featured: false,
   });
 
+  const [blogPosts, setBlogPosts] = useState<BlogArticle[]>([]);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<BlogArticle | null>(null);
+  const [showBlogForm, setShowBlogForm] = useState(false);
+  const [newBlog, setNewBlog] = useState<BlogArticle>({
+    slug: '',
+    title: '',
+    sections: [{ heading: '', content: [''] }],
+    cta: '',
+  });
+
   useEffect(() => {
     fetch('/api/products')
       .then((r) => r.json())
       .then((data) => setProducts(Array.isArray(data) ? data : []))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (tab === 'blog') {
+      setBlogLoading(true);
+      fetch('/api/blog')
+        .then((r) => r.json())
+        .then((data) => setBlogPosts(Array.isArray(data) ? data : []))
+        .finally(() => setBlogLoading(false));
+    }
+  }, [tab]);
 
   const saveProduct = async () => {
     if (!newProduct.name) return;
@@ -143,17 +172,244 @@ export default function AdminPage() {
     setShowForm(true);
   };
 
+  const saveBlog = async () => {
+    if (!newBlog.title) return;
+    const slug = newBlog.slug || newBlog.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const sections = newBlog.sections.filter((s) => s.heading.trim() || s.content.some((c) => c.trim()));
+    if (sections.length === 0) sections.push({ heading: 'Content', content: [''] });
+    const payload = { ...newBlog, slug, sections };
+    try {
+      if (editingBlog?.id) {
+        const res = await fetch(`/api/blog/${editingBlog.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Save failed');
+      } else {
+        const res = await fetch('/api/blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Save failed');
+      }
+      setSaveMessage('Article saved!');
+      setTimeout(() => setSaveMessage(null), 3000);
+      const fresh = await fetch('/api/blog').then((r) => r.json());
+      setBlogPosts(Array.isArray(fresh) ? fresh : []);
+      setEditingBlog(null);
+      setShowBlogForm(false);
+      setNewBlog({ slug: '', title: '', sections: [{ heading: '', content: [''] }], cta: '' });
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Save failed');
+      setTimeout(() => setSaveMessage(null), 6000);
+    }
+  };
+
+  const deleteBlog = async (id: string) => {
+    if (!confirm('Delete this article?')) return;
+    const res = await fetch(`/api/blog/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setBlogPosts((prev) => prev.filter((b) => b.id !== id));
+      setEditingBlog(null);
+      setSaveMessage('Deleted');
+      setTimeout(() => setSaveMessage(null), 2000);
+    } else {
+      setSaveMessage((await res.json().catch(() => ({}))).error || 'Delete failed');
+      setTimeout(() => setSaveMessage(null), 5000);
+      const fresh = await fetch('/api/blog').then((r) => r.json());
+      setBlogPosts(Array.isArray(fresh) ? fresh : []);
+    }
+  };
+
+  const startEditBlog = (b: BlogArticle) => {
+    setEditingBlog(b);
+    setNewBlog({
+      slug: b.slug,
+      title: b.title,
+      sections: b.sections?.length ? b.sections : [{ heading: '', content: [''] }],
+      cta: b.cta || '',
+    });
+    setShowBlogForm(true);
+  };
+
+  const addBlogSection = () => {
+    setNewBlog((n) => ({
+      ...n,
+      sections: [...n.sections, { heading: '', content: [''] }],
+    }));
+  };
+
+  const updateBlogSection = (i: number, heading: string, content: string[]) => {
+    setNewBlog((n) => {
+      const s = [...n.sections];
+      s[i] = { heading, content };
+      return { ...n, sections: s };
+    });
+  };
+
+  const removeBlogSection = (i: number) => {
+    setNewBlog((n) => ({
+      ...n,
+      sections: n.sections.filter((_, j) => j !== i),
+    }));
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="font-display text-4xl font-bold mb-2">Admin</h1>
-      <p className="text-slate-400 mb-8">Manage kits, specifications, and images.</p>
+      <div className="flex gap-4 mb-8">
+        <button
+          onClick={() => setTab('kits')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'kits' ? 'bg-solar-leaf text-white' : 'glass'}`}
+        >
+          <Package className="w-5 h-5" /> Kits
+        </button>
+        <button
+          onClick={() => setTab('blog')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'blog' ? 'bg-solar-leaf text-white' : 'glass'}`}
+        >
+          <FileText className="w-5 h-5" /> Understanding Solar
+        </button>
+      </div>
       {saveMessage && (
         <div className={`mb-6 px-4 py-2 rounded-lg ${saveMessage.includes('failed') ? 'bg-red-500/20 text-red-300' : 'bg-solar-leaf/20 text-solar-leaf'}`}>
           {saveMessage}
         </div>
       )}
 
-      {loading ? (
+      {tab === 'blog' ? (
+        blogLoading ? (
+          <div className="text-slate-400">Loading articles...</div>
+        ) : (
+          <>
+            {!showBlogForm ? (
+              <button
+                onClick={() => {
+                  setEditingBlog(null);
+                  setNewBlog({ slug: '', title: '', sections: [{ heading: '', content: [''] }], cta: '' });
+                  setShowBlogForm(true);
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-solar-leaf hover:bg-solar-forest transition-colors mb-8"
+              >
+                <Plus className="w-5 h-5" /> Add Article
+              </button>
+            ) : (
+              <div className="glass rounded-2xl p-8 mb-8">
+                <h2 className="font-display text-xl font-semibold mb-6">
+                  {editingBlog ? 'Edit Article' : 'New Article'}
+                </h2>
+                <div className="grid gap-4">
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={newBlog.title}
+                      onChange={(e) => setNewBlog((n) => ({ ...n, title: e.target.value }))}
+                      className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">Slug (URL)</label>
+                    <input
+                      type="text"
+                      value={newBlog.slug}
+                      onChange={(e) => setNewBlog((n) => ({ ...n, slug: e.target.value }))}
+                      placeholder="Auto from title"
+                      className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    />
+                  </div>
+                  {newBlog.sections.map((sec, i) => (
+                    <div key={i} className="p-4 rounded-xl glass">
+                      <div className="flex justify-between items-center mb-2">
+                        <input
+                          type="text"
+                          value={sec.heading}
+                          onChange={(e) => updateBlogSection(i, e.target.value, sec.content)}
+                          placeholder="Section heading"
+                          className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white mr-2"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeBlogSection(i)}
+                          className="text-red-400 hover:text-red-300 px-2"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <textarea
+                        value={sec.content.join('\n')}
+                        onChange={(e) => updateBlogSection(i, sec.heading, e.target.value.split('\n'))}
+                        rows={6}
+                        placeholder="One bullet per line"
+                        className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                      />
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addBlogSection}
+                    className="text-solar-sky text-sm hover:underline"
+                  >
+                    + Add section
+                  </button>
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">CTA (call to action)</label>
+                    <input
+                      type="text"
+                      value={newBlog.cta}
+                      onChange={(e) => setNewBlog((n) => ({ ...n, cta: e.target.value }))}
+                      className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    />
+                  </div>
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      onClick={saveBlog}
+                      className="flex items-center gap-2 px-6 py-2 rounded-lg bg-solar-leaf hover:bg-solar-forest"
+                    >
+                      <Save className="w-4 h-4" /> Save
+                    </button>
+                    <button
+                      onClick={() => { setShowBlogForm(false); setEditingBlog(null); }}
+                      className="px-6 py-2 rounded-lg glass"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="space-y-4">
+              {blogPosts.map((b) => (
+                <div
+                  key={b.id || b.slug}
+                  className="glass rounded-xl p-4 flex items-center justify-between"
+                >
+                  <div>
+                    <h3 className="font-semibold">{b.title}</h3>
+                    <p className="text-slate-400 text-sm">/blog/{b.slug}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => startEditBlog(b)}
+                      className="p-2 rounded-lg hover:bg-white/10"
+                    >
+                      <Edit2 className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => deleteBlog(b.id!)}
+                      className="p-2 rounded-lg hover:bg-red-500/20 text-red-400"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )
+      ) : loading ? (
         <div className="text-slate-400">Loading...</div>
       ) : (
         <>
