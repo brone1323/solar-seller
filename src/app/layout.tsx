@@ -4,7 +4,6 @@ import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { ChatButton } from '@/components/ChatButton';
 
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
@@ -26,7 +25,6 @@ export default function RootLayout({
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
-          <ChatButton />
         </CartProvider>
       </body>
     </html>

@@ -23,6 +23,7 @@ export function Footer() {
               <li><Link href="/blog" className="text-slate-400 hover:text-white">Understanding Solar</Link></li>
               <li><Link href="/why-solar-diy" className="text-slate-400 hover:text-white">Why Solar-DIY</Link></li>
               <li><Link href="/cart" className="text-slate-400 hover:text-white">Cart</Link></li>
+              <li><Link href="#contact" className="text-slate-400 hover:text-white">Contact</Link></li>
             </ul>
           </div>
           <div>
@@ -32,6 +33,20 @@ export function Footer() {
             </ul>
           </div>
         </div>
+
+        <div id="contact" className="mt-12 p-8 rounded-2xl bg-white/5 border border-white/10">
+          <h3 className="font-display text-xl font-semibold mb-2">Contact Us</h3>
+          <p className="text-slate-400 mb-4 max-w-xl">
+            Have questions about our solar equipment or need help with your order? We&apos;re here to help.
+          </p>
+          <a
+            href="mailto:info@solardiystore.ca"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-medium hover:opacity-90 transition-opacity"
+          >
+            <Mail className="w-5 h-5" /> Email us at info@solardiystore.ca
+          </a>
+        </div>
+
         <div className="border-t border-white/10 mt-8 pt-8 text-center text-slate-500 text-sm">
           © {new Date().getFullYear()} Solar DIY. All rights reserved.
         </div>

@@ -10,6 +10,7 @@ const navLinks = [
   { href: '/products', label: 'Shop' },
   { href: '/blog', label: 'Understanding Solar' },
   { href: '/why-solar-diy', label: 'Why Solar-DIY' },
+  { href: '#contact', label: 'Contact' },
 ];
 
 export function Header() {

@@ -2,9 +2,37 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { ProductImageCarousel } from '@/components/ProductImageCarousel';
+import { ShareButton } from '@/components/ShareButton';
 import { readProducts } from '@/lib/productStorage';
 
 export const dynamic = 'force-dynamic';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.solar-diy.com';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const products = await readProducts();
+  const product = products.find((p) => p.slug === slug);
+  if (!product) return {};
+
+  const images = product.images?.filter(Boolean) || [];
+  const ogImages = images.length > 0
+    ? images.map((url) => ({ url, width: 1200, height: 630, alt: product.name }))
+    : [{ url: `${SITE_URL}/icon.png`, width: 1200, height: 630, alt: product.name }];
+
+  return {
+    title: `${product.name} | Solar DIY`,
+    description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      url: `${SITE_URL}/products/${slug}`,
+      siteName: 'Solar DIY',
+      images: ogImages,
+      type: 'website',
+    },
+  };
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -37,7 +65,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <p className="text-slate-400 mb-8">{product.longDescription}</p>
           )}
 
-          <AddToCartButton product={product} />
+          <div className="flex flex-wrap gap-4 mb-8">
+            <div className="flex-1 min-w-[200px]">
+              <AddToCartButton product={product} />
+            </div>
+            <ShareButton url={`/products/${product.slug}`} className="px-6 py-4 rounded-xl glass shrink-0" />
+          </div>
 
           {Object.keys(product.specifications).length > 0 && (
             <div className="mt-12">

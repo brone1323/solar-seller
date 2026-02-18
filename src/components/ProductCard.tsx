@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart } from 'lucide-react';
+import { ShareButton } from './ShareButton';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { useState } from 'react';
@@ -68,16 +69,21 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="font-display font-bold text-xl text-solar-leaf">
             {formatPrice(product.price)}
           </span>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              addToCart(product);
-            }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-solar-sky to-solar-leaf hover:opacity-90 transition-opacity font-medium"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            Add to Cart
-          </button>
+          <div className="flex items-center gap-2">
+            <div onClick={(e) => e.stopPropagation()}>
+              <ShareButton url={`/products/${product.slug}`} className="p-2" size="sm" />
+            </div>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                addToCart(product);
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-solar-sky to-solar-leaf hover:opacity-90 transition-opacity font-medium"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Add to Cart
+            </button>
+          </div>
         </div>
       </div>
     </div>
