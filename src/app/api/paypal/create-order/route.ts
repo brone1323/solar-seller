@@ -36,17 +36,19 @@ async function getAccessToken(): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { items, subtotal, shipping = 0 } = await request.json();
+    const { items, subtotal, shipping = 0, gst = 0 } = await request.json();
 
     if (!items?.length || subtotal === undefined) {
       return NextResponse.json({ error: 'Invalid cart data' }, { status: 400 });
     }
 
     const shippingVal = Math.max(0, Number(shipping) || 0);
-    const totalCents = subtotal + shippingVal;
+    const gstVal = Math.max(0, Number(gst) || 0);
+    const totalCents = subtotal + shippingVal + gstVal;
     const total = (totalCents / 100).toFixed(2);
     const itemTotal = (subtotal / 100).toFixed(2);
     const shippingTotal = (shippingVal / 100).toFixed(2);
+    const taxTotal = (gstVal / 100).toFixed(2);
 
     const accessToken = await getAccessToken();
 
@@ -55,6 +57,9 @@ export async function POST(request: NextRequest) {
     };
     if (shippingVal > 0) {
       breakdown.shipping = { currency_code: 'CAD', value: shippingTotal };
+    }
+    if (gstVal > 0) {
+      breakdown.tax_total = { currency_code: 'CAD', value: taxTotal };
     }
 
     const orderPayload = {

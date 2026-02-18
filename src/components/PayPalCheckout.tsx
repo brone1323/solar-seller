@@ -8,9 +8,10 @@ const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
 interface PayPalCheckoutProps {
   onSuccess: () => void;
   shippingCost?: number; // cents
+  gstCost?: number; // cents
 }
 
-function PayPalButtonsWrapper({ onSuccess, shippingCost = 0 }: { onSuccess: () => void; shippingCost?: number }) {
+function PayPalButtonsWrapper({ onSuccess, shippingCost = 0, gstCost = 0 }: { onSuccess: () => void; shippingCost?: number; gstCost?: number }) {
   const { items, subtotal } = useCart();
   const [{ isPending, isRejected }] = usePayPalScriptReducer();
 
@@ -52,7 +53,7 @@ function PayPalButtonsWrapper({ onSuccess, shippingCost = 0 }: { onSuccess: () =
           const res = await fetch('/api/paypal/create-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items, subtotal, shipping: shippingCost || 0 }),
+            body: JSON.stringify({ items, subtotal, shipping: shippingCost || 0, gst: gstCost || 0 }),
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Failed to create order');
@@ -84,7 +85,7 @@ function PayPalButtonsWrapper({ onSuccess, shippingCost = 0 }: { onSuccess: () =
   );
 }
 
-export function PayPalCheckout({ onSuccess, shippingCost = 0 }: PayPalCheckoutProps) {
+export function PayPalCheckout({ onSuccess, shippingCost = 0, gstCost = 0 }: PayPalCheckoutProps) {
   if (!clientId) {
     return (
       <div className="rounded-xl p-4 bg-amber-500/20 border border-amber-500/50">
@@ -104,7 +105,7 @@ export function PayPalCheckout({ onSuccess, shippingCost = 0 }: PayPalCheckoutPr
         components: 'buttons',
       }}
     >
-      <PayPalButtonsWrapper onSuccess={onSuccess} shippingCost={shippingCost} />
+      <PayPalButtonsWrapper onSuccess={onSuccess} shippingCost={shippingCost} gstCost={gstCost} />
     </PayPalScriptProvider>
   );
 }

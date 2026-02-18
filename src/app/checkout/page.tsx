@@ -38,6 +38,11 @@ export default function CheckoutPage() {
   });
   const [complete, setComplete] = useState(false);
 
+  const shippingCents = selectedShipping?.price ?? 0;
+  const gstRate = 0.05;
+  const gstCents = Math.round((subtotal + shippingCents) * gstRate);
+  const totalCents = subtotal + shippingCents + gstCents;
+
   useEffect(() => {
     if (step !== 2) return;
     setQuotesLoading(true);
@@ -243,7 +248,8 @@ export default function CheckoutPage() {
               <div className="mb-6 rounded-xl overflow-hidden">
                 <PayPalCheckout
                   onSuccess={handlePayPalSuccess}
-                  shippingCost={selectedShipping?.price ?? 0}
+                  shippingCost={shippingCents}
+                  gstCost={gstCents}
                 />
               </div>
               <button
@@ -281,10 +287,16 @@ export default function CheckoutPage() {
                   <span>{formatPrice(selectedShipping.price)}</span>
                 </div>
               )}
+              {step >= 2 && gstCents > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>GST (5%)</span>
+                  <span>{formatPrice(gstCents)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold pt-2">
                 <span>Total</span>
                 <span className="text-solar-leaf">
-                  {formatPrice(subtotal + (selectedShipping?.price ?? 0))}
+                  {formatPrice(step >= 2 ? totalCents : subtotal)}
                 </span>
               </div>
             </div>
