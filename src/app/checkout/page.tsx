@@ -40,7 +40,9 @@ export default function CheckoutPage() {
 
   const shippingCents = selectedShipping?.price ?? 0;
   const gstRate = 0.05;
-  const gstCents = Math.round((subtotal + shippingCents) * gstRate);
+  // GST on subtotal only for step 1; on subtotal + shipping for step 2+
+  const taxableCents = step >= 2 ? subtotal + shippingCents : subtotal;
+  const gstCents = Math.round(taxableCents * gstRate);
   const totalCents = subtotal + shippingCents + gstCents;
 
   useEffect(() => {
@@ -287,7 +289,7 @@ export default function CheckoutPage() {
                   <span>{formatPrice(selectedShipping.price)}</span>
                 </div>
               )}
-              {step >= 2 && gstCents > 0 && (
+              {gstCents > 0 && (
                 <div className="flex justify-between text-sm">
                   <span>GST (5%)</span>
                   <span>{formatPrice(gstCents)}</span>
@@ -296,7 +298,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between font-bold pt-2">
                 <span>Total</span>
                 <span className="text-solar-leaf">
-                  {formatPrice(step >= 2 ? totalCents : subtotal)}
+                  {formatPrice(totalCents)}
                 </span>
               </div>
             </div>
