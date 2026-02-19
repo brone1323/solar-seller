@@ -29,7 +29,7 @@ export function Footer() {
           <div>
             <h4 className="font-display font-semibold mb-4">Contact</h4>
             <ul className="space-y-2 text-slate-400">
-              <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> info@solardiystore.ca</li>
+              <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> Email us at info@solar-diy.com</li>
             </ul>
           </div>
         </div>
@@ -40,10 +40,10 @@ export function Footer() {
             Have questions about our solar equipment or need help with your order? We&apos;re here to help.
           </p>
           <a
-            href="mailto:info@solardiystore.ca"
+            href="mailto:info@solar-diy.com"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-medium hover:opacity-90 transition-opacity"
           >
-            <Mail className="w-5 h-5" /> Email us at info@solardiystore.ca
+            <Mail className="w-5 h-5" /> Email us at info@solar-diy.com
           </a>
         </div>
 

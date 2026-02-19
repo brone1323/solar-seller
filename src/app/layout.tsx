@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Outfit, DM_Sans } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { Header } from '@/components/Header';
@@ -26,6 +27,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </CartProvider>
+        <Analytics />
       </body>
     </html>
   );

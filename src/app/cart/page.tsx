@@ -91,14 +91,22 @@ export default function CartPage() {
                 <span>{formatPrice(subtotal)}</span>
               </div>
             </div>
-            <div className="border-t border-white/10 pt-4 mb-6">
-              <div className="flex justify-between font-bold text-lg">
+            <div className="border-t border-white/10 pt-4 space-y-2 mb-6">
+              <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
-                <span className="text-solar-leaf">{formatPrice(subtotal)}</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>GST (5%)</span>
+                <span>{formatPrice(Math.round(subtotal * 0.05))}</span>
+              </div>
+              <div className="flex justify-between font-bold text-lg pt-2">
+                <span>Total (est.)</span>
+                <span className="text-solar-leaf">{formatPrice(subtotal + Math.round(subtotal * 0.05))}</span>
               </div>
             </div>
             <p className="text-slate-400 text-sm mb-4">
-              Taxes and shipping calculated at checkout
+              Shipping calculated at checkout
             </p>
             <Link
               href="/checkout"
