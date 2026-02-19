@@ -23,7 +23,6 @@ export async function POST(request: NextRequest) {
     if (!productSlug || !bodyText) {
       return NextResponse.json({ error: 'Product and question text required' }, { status: 400 });
     }
-    const scheduledFor = typeof body.scheduledFor === 'string' ? body.scheduledFor.trim() || undefined : undefined;
     const questions = await readQuestions();
     const newQ: ProductQuestion = {
       id: `q-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
@@ -31,7 +30,6 @@ export async function POST(request: NextRequest) {
       author,
       body: bodyText,
       createdAt: new Date().toISOString(),
-      scheduledFor: scheduledFor || undefined,
     };
     questions.push(newQ);
     await writeQuestions(questions);

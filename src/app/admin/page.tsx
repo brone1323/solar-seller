@@ -54,7 +54,7 @@ export default function AdminPage() {
   const [questionsList, setQuestionsList] = useState<ProductQuestion[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [answerDraft, setAnswerDraft] = useState<Record<string, string>>({});
-  const [newQuestion, setNewQuestion] = useState({ productSlug: '', author: 'Guest', body: '', scheduledFor: '' });
+  const [newQuestion, setNewQuestion] = useState({ productSlug: '', author: 'Guest', body: '' });
 
   useEffect(() => {
     authFetch('/api/auth/session')
@@ -350,13 +350,12 @@ export default function AdminPage() {
           productSlug: newQuestion.productSlug.trim(),
           author: newQuestion.author.trim() || 'Guest',
           body: newQuestion.body.trim(),
-          scheduledFor: newQuestion.scheduledFor.trim() || undefined,
         }),
       });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
       const created = await res.json();
       setQuestionsList((prev) => [...prev, created]);
-      setNewQuestion({ productSlug: '', author: 'Guest', body: '', scheduledFor: '' });
+      setNewQuestion({ productSlug: '', author: 'Guest', body: '' });
       setSaveMessage('Question added');
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (e) {
@@ -457,8 +456,8 @@ export default function AdminPage() {
         ) : (
           <>
             <div className="glass rounded-2xl p-8 mb-8">
-              <h2 className="font-display text-xl font-semibold mb-6">Add scheduled question</h2>
-              <p className="text-slate-400 text-sm mb-4">Add a question as if from a customer (e.g. to simulate activity). Optionally set when it appears.</p>
+              <h2 className="font-display text-xl font-semibold mb-6">Add question</h2>
+              <p className="text-slate-400 text-sm mb-4">Add a question as if from a customer. It will appear on the product page right away.</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Product (slug)</label>
@@ -490,15 +489,6 @@ export default function AdminPage() {
                     value={newQuestion.body}
                     onChange={(e) => setNewQuestion((n) => ({ ...n, body: e.target.value }))}
                     placeholder="e.g. Does this kit include mounting hardware?"
-                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">Show after (optional, ISO date)</label>
-                  <input
-                    type="datetime-local"
-                    value={newQuestion.scheduledFor ? newQuestion.scheduledFor.slice(0, 16) : ''}
-                    onChange={(e) => setNewQuestion((n) => ({ ...n, scheduledFor: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                   />
                 </div>
