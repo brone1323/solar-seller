@@ -425,24 +425,24 @@ export default function AdminPage() {
           <LogOut className="w-5 h-5" /> Log out
         </button>
       </div>
-      <div className="flex gap-4 mb-8">
+      <div className="flex flex-wrap gap-3 mb-8">
         <button
           onClick={() => setTab('kits')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'kits' ? 'bg-solar-leaf text-white' : 'glass'}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'kits' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
         >
           <Package className="w-5 h-5" /> Kits
         </button>
         <button
-          onClick={() => setTab('blog')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'blog' ? 'bg-solar-leaf text-white' : 'glass'}`}
-        >
-          <FileText className="w-5 h-5" /> Understanding Solar
-        </button>
-        <button
           onClick={() => setTab('questions')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'questions' ? 'bg-solar-leaf text-white' : 'glass'}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'questions' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
         >
           <MessageCircle className="w-5 h-5" /> Questions
+        </button>
+        <button
+          onClick={() => setTab('blog')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'blog' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
+        >
+          <FileText className="w-5 h-5" /> Understanding Solar
         </button>
       </div>
       {saveMessage && (
