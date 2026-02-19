@@ -4,19 +4,19 @@ import { ProductQuestion } from '@/types';
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { slug } = await params;
+  const { id: productSlug } = await params;
   const questions = await readQuestions();
-  const forProduct = getQuestionsForProduct(questions, slug);
+  const forProduct = getQuestionsForProduct(questions, productSlug);
   return NextResponse.json(forProduct);
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { slug } = await params;
+  const { id: productSlug } = await params;
   try {
     const body = await request.json();
     const author = typeof body.author === 'string' ? body.author.trim() || 'Guest' : 'Guest';
@@ -27,7 +27,7 @@ export async function POST(
     const questions = await readQuestions();
     const newQ: ProductQuestion = {
       id: `q-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      productSlug: slug,
+      productSlug,
       author,
       body: bodyText,
       createdAt: new Date().toISOString(),
