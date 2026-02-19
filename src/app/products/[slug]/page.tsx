@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { ProductImageCarousel } from '@/components/ProductImageCarousel';
+import { ProductQuestionsBox } from '@/components/ProductQuestionsBox';
 import { ShareButton } from '@/components/ShareButton';
 import { readProducts } from '@/lib/productStorage';
 
@@ -57,10 +58,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <div>
           <span className="text-solar-sky font-medium">{product.category}</span>
           <h1 className="font-display text-4xl font-bold mt-2 mb-4">{product.name}</h1>
-          <p className="text-3xl font-bold text-solar-leaf mb-6">
+          <p className="text-3xl font-bold text-solar-leaf mb-1">
             {new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.price / 100)}
           </p>
-          <p className="text-slate-300 text-lg mb-6">{product.description}</p>
+          {product.priceSubtext && (
+            <p className="text-slate-400 text-sm mb-6">{product.priceSubtext}</p>
+          )}
+          <p className={`text-slate-300 text-lg mb-6 ${product.priceSubtext ? '' : 'mt-5'}`}>{product.description}</p>
           {product.longDescription && (
             <p className="text-slate-400 mb-8">{product.longDescription}</p>
           )}
@@ -86,6 +90,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
           )}
         </div>
+      </div>
+
+      <div className="mt-12">
+        <ProductQuestionsBox productSlug={product.slug} />
       </div>
     </div>
   );

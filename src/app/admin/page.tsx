@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, FileText, Package, LogOut } from 'lucide-react';
-import { Product } from '@/types';
+import { Plus, Edit2, Trash2, Save, FileText, Package, LogOut, MessageCircle } from 'lucide-react';
+import { Product, ProductQuestion } from '@/types';
 
 const authFetch = (url: string, init?: RequestInit) =>
   fetch(url, { ...init, credentials: 'include' as RequestCredentials });
@@ -21,7 +21,7 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
 
-  const [tab, setTab] = useState<'kits' | 'blog'>('kits');
+  const [tab, setTab] = useState<'kits' | 'blog' | 'questions'>('kits');
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +33,7 @@ export default function AdminPage() {
     description: '',
     longDescription: '',
     price: 0,
+    priceSubtext: '',
     category: 'Solar Kits',
     images: ['', '', ''],
     specifications: {},
@@ -49,6 +50,11 @@ export default function AdminPage() {
     sections: [{ heading: '', content: [''] }],
     cta: '',
   });
+
+  const [questionsList, setQuestionsList] = useState<ProductQuestion[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [answerDraft, setAnswerDraft] = useState<Record<string, string>>({});
+  const [newQuestion, setNewQuestion] = useState({ productSlug: '', author: 'Guest', body: '', scheduledFor: '' });
 
   useEffect(() => {
     authFetch('/api/auth/session')
@@ -97,6 +103,16 @@ export default function AdminPage() {
         .then((r) => r.json())
         .then((data) => setBlogPosts(Array.isArray(data) ? data : []))
         .finally(() => setBlogLoading(false));
+    }
+  }, [tab, authenticated]);
+
+  useEffect(() => {
+    if (tab === 'questions' && authenticated) {
+      setQuestionsLoading(true);
+      authFetch('/api/questions')
+        .then((r) => r.json())
+        .then((data) => setQuestionsList(Array.isArray(data) ? data : []))
+        .finally(() => setQuestionsLoading(false));
     }
   }, [tab, authenticated]);
 
@@ -171,6 +187,7 @@ export default function AdminPage() {
       description: '',
       longDescription: '',
       price: 0,
+      priceSubtext: '',
       category: 'Solar Kits',
       images: ['', '', ''],
       specifications: {},
@@ -205,6 +222,7 @@ export default function AdminPage() {
       description: p.description,
       longDescription: p.longDescription,
       price: p.price,
+      priceSubtext: p.priceSubtext ?? '',
       category: p.category,
       images: [imgs[0] || '', imgs[1] || '', imgs[2] || ''],
       specifications: p.specifications || {},
@@ -297,6 +315,56 @@ export default function AdminPage() {
     }));
   };
 
+  const saveAnswer = async (id: string) => {
+    const answer = answerDraft[id] ?? '';
+    try {
+      const res = await authFetch(`/api/questions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answer: answer.trim() || '' }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
+      setQuestionsList((prev) =>
+        prev.map((q) => (q.id === id ? { ...q, answer: answer.trim() || undefined } : q))
+      );
+      setAnswerDraft((d) => ({ ...d, [id]: '' }));
+      setSaveMessage('Answer saved');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Failed to save answer');
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
+  };
+
+  const addScheduledQuestion = async () => {
+    if (!newQuestion.productSlug.trim() || !newQuestion.body.trim()) {
+      setSaveMessage('Product and question text required');
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+    try {
+      const res = await authFetch('/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productSlug: newQuestion.productSlug.trim(),
+          author: newQuestion.author.trim() || 'Guest',
+          body: newQuestion.body.trim(),
+          scheduledFor: newQuestion.scheduledFor.trim() || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
+      const created = await res.json();
+      setQuestionsList((prev) => [...prev, created]);
+      setNewQuestion({ productSlug: '', author: 'Guest', body: '', scheduledFor: '' });
+      setSaveMessage('Question added');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Failed to add question');
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
+  };
+
   if (!authChecked) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -370,6 +438,12 @@ export default function AdminPage() {
         >
           <FileText className="w-5 h-5" /> Understanding Solar
         </button>
+        <button
+          onClick={() => setTab('questions')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'questions' ? 'bg-solar-leaf text-white' : 'glass'}`}
+        >
+          <MessageCircle className="w-5 h-5" /> Questions
+        </button>
       </div>
       {saveMessage && (
         <div className={`mb-6 px-4 py-2 rounded-lg ${saveMessage.includes('failed') ? 'bg-red-500/20 text-red-300' : 'bg-solar-leaf/20 text-solar-leaf'}`}>
@@ -377,7 +451,113 @@ export default function AdminPage() {
         </div>
       )}
 
-      {tab === 'blog' ? (
+      {tab === 'questions' ? (
+        questionsLoading ? (
+          <div className="text-slate-400">Loading questions...</div>
+        ) : (
+          <>
+            <div className="glass rounded-2xl p-8 mb-8">
+              <h2 className="font-display text-xl font-semibold mb-6">Add scheduled question</h2>
+              <p className="text-slate-400 text-sm mb-4">Add a question as if from a customer (e.g. to simulate activity). Optionally set when it appears.</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Product (slug)</label>
+                  <select
+                    value={newQuestion.productSlug}
+                    onChange={(e) => setNewQuestion((n) => ({ ...n, productSlug: e.target.value }))}
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  >
+                    <option value="">Select product</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.slug}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Author name</label>
+                  <input
+                    type="text"
+                    value={newQuestion.author}
+                    onChange={(e) => setNewQuestion((n) => ({ ...n, author: e.target.value }))}
+                    placeholder="Guest"
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm text-slate-400 mb-1">Question text</label>
+                  <input
+                    type="text"
+                    value={newQuestion.body}
+                    onChange={(e) => setNewQuestion((n) => ({ ...n, body: e.target.value }))}
+                    placeholder="e.g. Does this kit include mounting hardware?"
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Show after (optional, ISO date)</label>
+                  <input
+                    type="datetime-local"
+                    value={newQuestion.scheduledFor ? newQuestion.scheduledFor.slice(0, 16) : ''}
+                    onChange={(e) => setNewQuestion((n) => ({ ...n, scheduledFor: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={addScheduledQuestion}
+                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-solar-leaf hover:bg-solar-forest"
+                  >
+                    <Plus className="w-4 h-4" /> Add question
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h2 className="font-display text-xl font-semibold">All questions — click to answer</h2>
+              {questionsList
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .map((q) => (
+                  <div
+                    key={q.id}
+                    className="glass rounded-xl p-4"
+                  >
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-slate-400 text-sm mb-1">
+                          {q.productSlug} · {q.author} · {new Date(q.createdAt).toLocaleString()}
+                        </p>
+                        <p className="text-slate-200 font-medium">{q.body}</p>
+                        {q.answer && (
+                          <p className="text-solar-leaf text-sm mt-2 border-l-2 border-solar-leaf/50 pl-3">{q.answer}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      <textarea
+                        value={answerDraft[q.id] ?? q.answer ?? ''}
+                        onChange={(e) => setAnswerDraft((d) => ({ ...d, [q.id]: e.target.value }))}
+                        placeholder="Type your answer…"
+                        rows={3}
+                        className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-slate-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => saveAnswer(q.id)}
+                        className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-solar-leaf hover:bg-solar-forest text-sm"
+                      >
+                        <Save className="w-4 h-4" /> Save answer
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              {questionsList.length === 0 && (
+                <p className="text-slate-400">No questions yet. Add one above or wait for customers to ask on product pages.</p>
+              )}
+            </div>
+          </>
+        )
+      ) : tab === 'blog' ? (
         blogLoading ? (
           <div className="text-slate-400">Loading articles...</div>
         ) : (
@@ -558,6 +738,16 @@ export default function AdminPage() {
                     type="number"
                     value={newProduct.price || 0}
                     onChange={(e) => setNewProduct((p) => ({ ...p, price: Number(e.target.value) }))}
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Text below price (optional)</label>
+                  <input
+                    type="text"
+                    value={newProduct.priceSubtext || ''}
+                    onChange={(e) => setNewProduct((p) => ({ ...p, priceSubtext: e.target.value }))}
+                    placeholder="e.g. Average installed price: $12,000"
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                   />
                 </div>

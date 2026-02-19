@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
       description: body.description || '',
       longDescription: body.longDescription,
       price: Number(body.price) || 0,
+      priceSubtext: typeof body.priceSubtext === 'string' ? body.priceSubtext.trim() || undefined : undefined,
       images: Array.isArray(body.images) ? body.images : body.images ? [body.images] : [],
       category: body.category || 'Uncategorized',
       specifications: typeof body.specifications === 'object' ? body.specifications : {},
