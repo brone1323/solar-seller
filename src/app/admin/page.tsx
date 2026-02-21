@@ -458,6 +458,12 @@ export default function AdminPage() {
       </div>
       <div className="flex flex-wrap gap-3 mb-8">
         <button
+          onClick={() => setTab('settings')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'settings' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
+        >
+          <Settings className="w-5 h-5" /> Settings
+        </button>
+        <button
           onClick={() => setTab('kits')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'kits' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
         >
@@ -474,12 +480,6 @@ export default function AdminPage() {
           className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'blog' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
         >
           <FileText className="w-5 h-5" /> Understanding Solar
-        </button>
-        <button
-          onClick={() => setTab('settings')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'settings' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
-        >
-          <Settings className="w-5 h-5" /> Settings
         </button>
       </div>
       {saveMessage && (
