@@ -1,4 +1,5 @@
 'use client';
+// Admin tabs: Settings, Kits, Questions, Understanding Solar
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, FileText, Package, LogOut, MessageCircle, Settings } from 'lucide-react';
