@@ -121,15 +121,13 @@ export default function AdminPage() {
   }, [tab, authenticated]);
 
   useEffect(() => {
-    if (tab === 'settings' && authenticated) {
-      setSettingsLoading(true);
+    if (authenticated) {
       authFetch('/api/admin/settings')
         .then((r) => r.json())
         .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled) }))
-        .catch(() => setSettingsState({ shippingDisabled: false }))
-        .finally(() => setSettingsLoading(false));
+        .catch(() => setSettingsState({ shippingDisabled: false }));
     }
-  }, [tab, authenticated]);
+  }, [authenticated]);
 
   const updateShippingDisabled = async (shippingDisabled: boolean) => {
     setSettingsState((s) => ({ ...s, shippingDisabled }));
@@ -740,6 +738,21 @@ export default function AdminPage() {
         <div className="text-slate-400">Loading...</div>
       ) : (
         <>
+          <div className="glass rounded-xl p-6 mb-8 max-w-xl">
+            <h3 className="font-display font-semibold mb-3">Test mode</h3>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.shippingDisabled}
+                onChange={(e) => updateShippingDisabled(e.target.checked)}
+                className="w-5 h-5 rounded border-white/20"
+              />
+              <span>Disable shipping costs (for testing)</span>
+            </label>
+            <p className="text-slate-400 text-sm mt-2">
+              When enabled, checkout shows &quot;Free shipping (test mode)&quot; at $0 so you can run a test order without paying shipping.
+            </p>
+          </div>
           {!showForm ? (
             <button
               onClick={() => {
