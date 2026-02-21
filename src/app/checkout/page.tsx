@@ -56,7 +56,7 @@ export default function CheckoutPage() {
       body: JSON.stringify({
         postalCode: form.postalCode,
         province: form.province,
-        subtotal,
+        subtotal: subtotal ?? 0,
       }),
     })
       .then((r) => r.json())

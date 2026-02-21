@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, FileText, Package, LogOut, MessageCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, FileText, Package, LogOut, MessageCircle, Settings } from 'lucide-react';
 import { Product, ProductQuestion } from '@/types';
 
 const authFetch = (url: string, init?: RequestInit) =>
@@ -21,7 +21,7 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
 
-  const [tab, setTab] = useState<'kits' | 'blog' | 'questions'>('kits');
+  const [tab, setTab] = useState<'kits' | 'blog' | 'questions' | 'settings'>('kits');
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +55,9 @@ export default function AdminPage() {
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [answerDraft, setAnswerDraft] = useState<Record<string, string>>({});
   const [newQuestion, setNewQuestion] = useState({ productSlug: '', author: 'Guest', body: '' });
+
+  const [settings, setSettingsState] = useState<{ shippingDisabled: boolean }>({ shippingDisabled: false });
+  const [settingsLoading, setSettingsLoading] = useState(false);
 
   useEffect(() => {
     authFetch('/api/auth/session')
@@ -115,6 +118,35 @@ export default function AdminPage() {
         .finally(() => setQuestionsLoading(false));
     }
   }, [tab, authenticated]);
+
+  useEffect(() => {
+    if (tab === 'settings' && authenticated) {
+      setSettingsLoading(true);
+      authFetch('/api/admin/settings')
+        .then((r) => r.json())
+        .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled) }))
+        .catch(() => setSettingsState({ shippingDisabled: false }))
+        .finally(() => setSettingsLoading(false));
+    }
+  }, [tab, authenticated]);
+
+  const updateShippingDisabled = async (shippingDisabled: boolean) => {
+    setSettingsState((s) => ({ ...s, shippingDisabled }));
+    try {
+      const res = await authFetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shippingDisabled }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
+      setSaveMessage('Settings saved');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Failed to save settings');
+      setTimeout(() => setSaveMessage(null), 5000);
+      setSettingsState((s) => ({ ...s, shippingDisabled: !shippingDisabled }));
+    }
+  };
 
   const saveProduct = async () => {
     if (!newProduct.name) return;
@@ -443,6 +475,12 @@ export default function AdminPage() {
         >
           <FileText className="w-5 h-5" /> Understanding Solar
         </button>
+        <button
+          onClick={() => setTab('settings')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'settings' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
+        >
+          <Settings className="w-5 h-5" /> Settings
+        </button>
       </div>
       {saveMessage && (
         <div className={`mb-6 px-4 py-2 rounded-lg ${saveMessage.includes('failed') ? 'bg-red-500/20 text-red-300' : 'bg-solar-leaf/20 text-solar-leaf'}`}>
@@ -450,7 +488,27 @@ export default function AdminPage() {
         </div>
       )}
 
-      {tab === 'questions' ? (
+      {tab === 'settings' ? (
+        settingsLoading ? (
+          <div className="text-slate-400">Loading settings...</div>
+        ) : (
+          <div className="glass rounded-2xl p-8 max-w-xl">
+            <h2 className="font-display text-xl font-semibold mb-6">Settings</h2>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.shippingDisabled}
+                onChange={(e) => updateShippingDisabled(e.target.checked)}
+                className="w-5 h-5 rounded border-white/20"
+              />
+              <span>Disable shipping costs (for testing)</span>
+            </label>
+            <p className="text-slate-400 text-sm mt-3">
+              When enabled, checkout shows &quot;Free shipping (test mode)&quot; at $0 so you can run a test order without paying shipping.
+            </p>
+          </div>
+        )
+      ) : tab === 'questions' ? (
         questionsLoading ? (
           <div className="text-slate-400">Loading questions...</div>
         ) : (
