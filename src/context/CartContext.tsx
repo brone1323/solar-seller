@@ -54,6 +54,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { product, quantity }];
     });
+    // Record for admin tracking (fire-and-forget)
+    fetch('/api/activity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'add_to_cart',
+        at: new Date().toISOString(),
+        productId: product.id,
+        productName: product.name,
+        quantity,
+      }),
+    }).catch(() => {});
   };
 
   const removeFromCart = (productId: string) => {

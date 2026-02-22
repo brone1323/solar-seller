@@ -2,7 +2,7 @@
 // Admin tabs: Settings, Kits, Questions, Understanding Solar
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, FileText, Package, LogOut, MessageCircle, Settings } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, FileText, Package, LogOut, MessageCircle, Settings, BarChart2 } from 'lucide-react';
 import { Product, ProductQuestion } from '@/types';
 
 const authFetch = (url: string, init?: RequestInit) =>
@@ -22,7 +22,7 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
 
-  const [tab, setTab] = useState<'kits' | 'blog' | 'questions' | 'settings'>('kits');
+  const [tab, setTab] = useState<'kits' | 'blog' | 'questions' | 'settings' | 'activity'>('kits');
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +59,11 @@ export default function AdminPage() {
   const [newQuestion, setNewQuestion] = useState({ productSlug: '', author: 'Guest', body: '' });
 
   const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleName: string; saleEndsAt: string }>({ shippingDisabled: false, saleName: '', saleEndsAt: '' });
+  const [saleDuration, setSaleDuration] = useState({ amount: 24, unit: 'hours' as 'hours' | 'days' });
+
+  type ActivityEvent = { type: 'add_to_cart'; at: string; productId: string; productName: string; quantity: number } | { type: 'purchase'; at: string; email?: string; firstName?: string; lastName?: string; address?: string; city?: string; province?: string; postalCode?: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number; paypalOrderId?: string };
+  const [activityList, setActivityList] = useState<ActivityEvent[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(false);
 
   useEffect(() => {
@@ -122,6 +127,17 @@ export default function AdminPage() {
   }, [tab, authenticated]);
 
   useEffect(() => {
+    if (tab === 'activity' && authenticated) {
+      setActivityLoading(true);
+      authFetch('/api/admin/activity')
+        .then((r) => r.json())
+        .then((data) => setActivityList(Array.isArray(data) ? data : []))
+        .catch(() => setActivityList([]))
+        .finally(() => setActivityLoading(false));
+    }
+  }, [tab, authenticated]);
+
+  useEffect(() => {
     if (authenticated) {
       authFetch('/api/admin/settings')
         .then((r) => r.json())
@@ -149,17 +165,75 @@ export default function AdminPage() {
   };
 
   const saveSaleSettings = async () => {
+    const name = (settings.saleName || '').trim();
+    const endsAt = (settings.saleEndsAt || '').trim();
+    if (!name) {
+      setSaveMessage('Enter a sale name');
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+    if (!endsAt || new Date(endsAt) <= new Date()) {
+      setSaveMessage('Pick an end date and time in the future');
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
     try {
       const res = await authFetch('/api/admin/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ saleName: settings.saleName, saleEndsAt: settings.saleEndsAt }),
+        body: JSON.stringify({ saleName: name, saleEndsAt: endsAt }),
       });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
-      setSaveMessage('Sale settings saved');
-      setTimeout(() => setSaveMessage(null), 3000);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Failed to save');
+      setSaveMessage('Sale settings saved. Countdown will show on the site and in the popup.');
+      setTimeout(() => setSaveMessage(null), 4000);
     } catch (e) {
       setSaveMessage(e instanceof Error ? e.message : 'Failed to save sale settings');
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
+  };
+
+  const startSale = async () => {
+    const name = (settings.saleName || '').trim();
+    if (!name) {
+      setSaveMessage('Enter a sale name first');
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+    const ms = saleDuration.unit === 'hours'
+      ? saleDuration.amount * 60 * 60 * 1000
+      : saleDuration.amount * 24 * 60 * 60 * 1000;
+    const saleEndsAt = new Date(Date.now() + ms).toISOString();
+    setSettingsState((s) => ({ ...s, saleName: name, saleEndsAt }));
+    try {
+      const res = await authFetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ saleName: name, saleEndsAt }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Failed to save');
+      setSaveMessage('Sale started. Countdown will show on the site and in the popup.');
+      setTimeout(() => setSaveMessage(null), 4000);
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Failed to start sale');
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
+  };
+
+  const endSale = async () => {
+    try {
+      const res = await authFetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ saleName: '', saleEndsAt: '' }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
+      setSettingsState((s) => ({ ...s, saleName: '', saleEndsAt: '' }));
+      setSaveMessage('Sale ended');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Failed to end sale');
       setTimeout(() => setSaveMessage(null), 5000);
     }
   };
@@ -482,6 +556,12 @@ export default function AdminPage() {
           <Settings className="w-5 h-5" /> Settings
         </button>
         <button
+          onClick={() => setTab('activity')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'activity' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
+        >
+          <BarChart2 className="w-5 h-5" /> Activity
+        </button>
+        <button
           onClick={() => setTab('kits')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'kits' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
         >
@@ -528,7 +608,16 @@ export default function AdminPage() {
             </div>
             <div className="border-t border-white/10 pt-8">
               <h3 className="font-display font-semibold mb-4">Sale / countdown</h3>
-              <p className="text-slate-400 text-sm mb-4">These appear in the site-wide sale popup and next to sale prices.</p>
+              <p className="text-slate-400 text-sm mb-4">Set a sale name and how long it runs. The countdown appears live on every product with a sale price and in a popup for visitors.</p>
+              {settings.saleEndsAt && new Date(settings.saleEndsAt) > new Date() && (
+                <div className="mb-6 p-4 rounded-xl bg-solar-leaf/10 border border-solar-leaf/30">
+                  <p className="text-solar-leaf font-medium">Current sale: {settings.saleName || 'Sale'}</p>
+                  <p className="text-slate-400 text-sm mt-1">Ends at {new Date(settings.saleEndsAt).toLocaleString()}</p>
+                  <button type="button" onClick={endSale} className="mt-3 px-4 py-2 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 text-sm">
+                    End sale
+                  </button>
+                </div>
+              )}
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Sale name</label>
@@ -548,12 +637,104 @@ export default function AdminPage() {
                     onChange={(e) => setSettingsState((s) => ({ ...s, saleEndsAt: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                   />
+                  <p className="text-slate-500 text-xs mt-1">Pick the date and time the sale ends. Then click Save sale settings below.</p>
                 </div>
-                <button type="button" onClick={saveSaleSettings} className="px-6 py-2 rounded-lg bg-solar-leaf hover:bg-solar-forest">
+                <button type="button" onClick={saveSaleSettings} className="w-full sm:w-auto px-6 py-3 rounded-lg bg-solar-leaf hover:bg-solar-forest font-medium">
                   Save sale settings
                 </button>
+                <div className="border-t border-white/10 pt-6 mt-6">
+                  <p className="text-slate-400 text-sm mb-2">Or start a sale for a set length from now:</p>
+                  <div className="flex flex-wrap gap-4 items-end">
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        value={saleDuration.amount}
+                        onChange={(e) => setSaleDuration((d) => ({ ...d, amount: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+                        className="w-24 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                      />
+                      <select
+                        value={saleDuration.unit}
+                        onChange={(e) => setSaleDuration((d) => ({ ...d, unit: e.target.value as 'hours' | 'days' }))}
+                        className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                      >
+                        <option value="hours">Hours</option>
+                        <option value="days">Days</option>
+                      </select>
+                    </div>
+                    <button type="button" onClick={startSale} className="px-6 py-2 rounded-lg glass hover:bg-white/10 border border-white/20">
+                      Start sale
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
+        )
+      ) : tab === 'activity' ? (
+        activityLoading ? (
+          <div className="text-slate-400">Loading activity...</div>
+        ) : (
+          <div className="glass rounded-2xl p-8 max-w-5xl">
+            <h2 className="font-display text-xl font-semibold mb-6">Activity</h2>
+            <p className="text-slate-400 text-sm mb-6">Add-to-cart and completed purchases. When customers enter email, name, or address at checkout, that is recorded here.</p>
+            {activityList.length === 0 ? (
+              <p className="text-slate-400 py-8">No activity yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10 text-slate-400">
+                      <th className="pb-3 pr-4">Type</th>
+                      <th className="pb-3 pr-4">Date</th>
+                      <th className="pb-3 pr-4">Details</th>
+                      <th className="pb-3">Contact / Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activityList.map((evt, i) => (
+                      <tr key={i} className="border-b border-white/5">
+                        <td className="py-3 pr-4">
+                          <span className={evt.type === 'purchase' ? 'text-solar-leaf font-medium' : 'text-slate-300'}>
+                            {evt.type === 'purchase' ? 'Purchase' : 'Add to cart'}
+                          </span>
+                        </td>
+                        <td className="py-3 pr-4 text-slate-400">{new Date(evt.at).toLocaleString()}</td>
+                        <td className="py-3 pr-4">
+                          {evt.type === 'add_to_cart' && (
+                            <span>{evt.productName} × {evt.quantity}</span>
+                          )}
+                          {evt.type === 'purchase' && (
+                            <div>
+                              {evt.items.map((it, j) => (
+                                <div key={j}>{it.name} × {it.quantity} — ${(it.priceCents * it.quantity / 100).toFixed(2)}</div>
+                              ))}
+                              <div className="mt-1 font-medium text-solar-leaf">Total ${(evt.totalCents / 100).toFixed(2)}</div>
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3">
+                          {evt.type === 'add_to_cart' && <span className="text-slate-500">—</span>}
+                          {evt.type === 'purchase' && (
+                            <div className="text-slate-300">
+                              {(evt.email || evt.firstName || evt.lastName) && (
+                                <div>{[evt.firstName, evt.lastName].filter(Boolean).join(' ')} {evt.email && `<${evt.email}>`}</div>
+                              )}
+                              {(evt.address || evt.city) && (
+                                <div className="text-slate-400 text-xs mt-1">
+                                  {[evt.address, evt.city, evt.province, evt.postalCode].filter(Boolean).join(', ')}
+                                </div>
+                              )}
+                              {!evt.email && !evt.firstName && !evt.lastName && !evt.address && <span className="text-slate-500">—</span>}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )
       ) : tab === 'questions' ? (

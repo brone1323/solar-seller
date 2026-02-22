@@ -19,7 +19,36 @@ interface ShippingQuote {
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
 
-  const handlePayPalSuccess = () => {
+  const handlePayPalSuccess = async (paypalOrderId?: string) => {
+    // Record purchase for admin tracking (email, name, address, items)
+    try {
+      await fetch('/api/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'purchase',
+          at: new Date().toISOString(),
+          email: form.email || undefined,
+          firstName: form.firstName || undefined,
+          lastName: form.lastName || undefined,
+          address: form.address || undefined,
+          city: form.city || undefined,
+          province: form.province || undefined,
+          postalCode: form.postalCode || undefined,
+          items: items.map(({ product, quantity }) => ({
+            productId: product.id,
+            name: product.name,
+            quantity,
+            priceCents: product.price,
+          })),
+          subtotalCents: subtotal,
+          shippingCents: selectedShipping?.price ?? 0,
+          gstCents: gstCents,
+          totalCents: totalCents,
+          paypalOrderId,
+        }),
+      });
+    } catch (_) {}
     setComplete(true);
     clearCart();
   };

@@ -3,6 +3,7 @@ import { Outfit, DM_Sans } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
+import { SaleBanner } from '@/components/SaleBanner';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { SalePopup } from '@/components/SalePopup';
@@ -24,6 +25,7 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
       <body className="font-body bg-solar-dark text-white antialiased min-h-screen flex flex-col">
         <CartProvider>
+          <SaleBanner />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />

@@ -5,38 +5,36 @@ import Link from 'next/link';
 import { X } from 'lucide-react';
 import { SaleCountdown } from './SaleCountdown';
 
-const POPUP_DISMISS_KEY = 'solar_sale_popup_dismissed';
+const POPUP_DISMISS_PREFIX = 'solar_sale_popup_dismissed_';
 
 export function SalePopup() {
   const [sale, setSale] = useState<{ saleName: string; saleEndsAt: string } | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const dismissed = typeof window !== 'undefined' ? sessionStorage.getItem(POPUP_DISMISS_KEY) : null;
-    if (dismissed) return;
-
     fetch('/api/sale')
       .then((r) => r.json())
       .then((data) => {
         const name = (data.saleName || '').trim() || 'Sale';
         const endsAt = (data.saleEndsAt || '').trim();
         if (endsAt && new Date(endsAt) > new Date()) {
+          const dismissed = typeof window !== 'undefined' ? sessionStorage.getItem(POPUP_DISMISS_PREFIX + endsAt) : null;
           setSale({ saleName: name, saleEndsAt: endsAt });
-          setVisible(true);
+          setVisible(!dismissed);
         }
       })
       .catch(() => {});
   }, []);
 
   const dismiss = () => {
-    sessionStorage.setItem(POPUP_DISMISS_KEY, '1');
+    if (sale?.saleEndsAt) sessionStorage.setItem(POPUP_DISMISS_PREFIX + sale.saleEndsAt, '1');
     setVisible(false);
   };
 
   if (!visible || !sale) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="glass rounded-2xl border border-solar-leaf/30 max-w-md w-full p-8 relative shadow-xl">
         <button
           type="button"

@@ -6,12 +6,12 @@ import { useCart } from '@/context/CartContext';
 const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
 
 interface PayPalCheckoutProps {
-  onSuccess: () => void;
+  onSuccess: (paypalOrderId?: string) => void;
   shippingCost?: number; // cents
   gstCost?: number; // cents
 }
 
-function PayPalButtonsWrapper({ onSuccess, shippingCost = 0, gstCost = 0 }: { onSuccess: () => void; shippingCost?: number; gstCost?: number }) {
+function PayPalButtonsWrapper({ onSuccess, shippingCost = 0, gstCost = 0 }: { onSuccess: (paypalOrderId?: string) => void; shippingCost?: number; gstCost?: number }) {
   const { items, subtotal } = useCart();
   const [{ isPending, isRejected }] = usePayPalScriptReducer();
 
@@ -71,7 +71,7 @@ function PayPalButtonsWrapper({ onSuccess, shippingCost = 0, gstCost = 0 }: { on
               alert(data.error || 'Payment failed. Please try again.');
               return;
             }
-            onSuccess();
+            onSuccess(orderID);
           } catch (err) {
             alert(err instanceof Error ? err.message : 'Payment failed. Please try again.');
           }
