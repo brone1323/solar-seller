@@ -62,9 +62,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="mb-1">
             {product.regularPrice != null && product.regularPrice > product.price ? (
               <>
-                <p className="text-3xl font-bold text-solar-leaf">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.price / 100)}</p>
-                <p className="text-slate-400 text-lg line-through">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.regularPrice / 100)}</p>
-                <ProductSaleCountdown product={product} />
+                <ProductSaleCountdown product={product} size="large" />
+                <div className="flex flex-wrap items-baseline gap-3 gap-y-1">
+                  <span className="text-slate-400 font-medium">Sale price</span>
+                  <span className="text-3xl font-bold text-solar-leaf">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.price / 100)}</span>
+                </div>
+                <p className="text-3xl font-bold text-slate-400 line-through mt-1">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.regularPrice / 100)}</p>
               </>
             ) : (
               <p className="text-3xl font-bold text-solar-leaf">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.price / 100)}</p>

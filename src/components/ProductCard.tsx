@@ -69,8 +69,11 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="flex flex-col gap-0.5">
             {product.regularPrice != null && product.regularPrice > product.price ? (
               <>
-                <span className="font-display font-bold text-xl text-solar-leaf">{formatPrice(product.price)}</span>
-                <span className="text-slate-400 text-sm line-through">{formatPrice(product.regularPrice)}</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-slate-400 text-sm font-medium">Sale price</span>
+                  <span className="font-display font-bold text-xl text-solar-leaf">{formatPrice(product.price)}</span>
+                </div>
+                <span className="font-display font-bold text-xl text-slate-400 line-through">{formatPrice(product.regularPrice)}</span>
               </>
             ) : (
               <span className="font-display font-bold text-xl text-solar-leaf">{formatPrice(product.price)}</span>
