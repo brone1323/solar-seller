@@ -164,9 +164,9 @@ export default function AdminPage() {
     }
   };
 
-  const saveSaleSettings = async () => {
+  const saveSaleSettings = async (endsAtOverride?: string) => {
     const name = (settings.saleName || '').trim();
-    const endsAt = (settings.saleEndsAt || '').trim();
+    const endsAt = (endsAtOverride ?? settings.saleEndsAt || '').trim();
     if (!name) {
       setSaveMessage('Enter a sale name');
       setTimeout(() => setSaveMessage(null), 3000);
@@ -177,6 +177,7 @@ export default function AdminPage() {
       setTimeout(() => setSaveMessage(null), 3000);
       return;
     }
+    if (endsAtOverride) setSettingsState((s) => ({ ...s, saleEndsAt: endsAt }));
     try {
       const res = await authFetch('/api/admin/settings', {
         method: 'PATCH',
@@ -635,9 +636,17 @@ export default function AdminPage() {
                     type="datetime-local"
                     value={settings.saleEndsAt ? settings.saleEndsAt.slice(0, 16) : ''}
                     onChange={(e) => setSettingsState((s) => ({ ...s, saleEndsAt: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
+                    onBlur={(e) => {
+                      const v = (e.target as HTMLInputElement).value;
+                      if (v) {
+                        const iso = new Date(v).toISOString();
+                        setSettingsState((s) => ({ ...s, saleEndsAt: iso }));
+                        saveSaleSettings(iso);
+                      }
+                    }}
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                   />
-                  <p className="text-slate-500 text-xs mt-1">Pick the date and time the sale ends. Then click Save sale settings below.</p>
+                  <p className="text-slate-500 text-xs mt-1">Pick the date and time, then close the calendar — it saves automatically. Or click Save sale settings below.</p>
                 </div>
                 <button type="button" onClick={saveSaleSettings} className="w-full sm:w-auto px-6 py-3 rounded-lg bg-solar-leaf hover:bg-solar-forest font-medium">
                   Save sale settings
