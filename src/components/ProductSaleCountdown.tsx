@@ -15,7 +15,7 @@ export function ProductSaleCountdown({ product, size = 'default' }: ProductSaleC
 
   useEffect(() => {
     if (!(product.regularPrice != null && product.regularPrice > product.price)) return;
-    fetch('/api/sale')
+    fetch('/api/sale', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
         const endsAt = (data.saleEndsAt || '').trim();

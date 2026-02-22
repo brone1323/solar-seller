@@ -12,7 +12,7 @@ export function SalePopup() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    fetch('/api/sale')
+    fetch('/api/sale', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
         const name = (data.saleName || '').trim() || 'Sale';
