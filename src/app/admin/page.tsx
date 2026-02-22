@@ -62,7 +62,7 @@ export default function AdminPage() {
   const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleName: string; saleEndsAt: string }>({ shippingDisabled: false, saleName: '', saleEndsAt: '' });
   const [saleDuration, setSaleDuration] = useState({ amount: 24, unit: 'hours' as 'hours' | 'days' });
 
-  type ActivityEvent = { type: 'add_to_cart'; at: string; productId: string; productName: string; quantity: number } | { type: 'purchase'; at: string; email?: string; firstName?: string; lastName?: string; address?: string; city?: string; province?: string; postalCode?: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number; paypalOrderId?: string };
+  type ActivityEvent = { type: 'add_to_cart'; at: string; productId: string; productName: string; quantity: number } | { type: 'purchase'; at: string; email?: string; firstName?: string; lastName?: string; address?: string; city?: string; province?: string; postalCode?: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number; paypalOrderId?: string } | { type: 'contact'; at: string; name: string; email: string; message: string };
   const [activityList, setActivityList] = useState<ActivityEvent[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(false);
@@ -697,8 +697,8 @@ export default function AdminPage() {
                     {activityList.map((evt, i) => (
                       <tr key={i} className="border-b border-white/5">
                         <td className="py-3 pr-4">
-                          <span className={evt.type === 'purchase' ? 'text-solar-leaf font-medium' : 'text-slate-300'}>
-                            {evt.type === 'purchase' ? 'Purchase' : 'Add to cart'}
+                          <span className={evt.type === 'purchase' ? 'text-solar-leaf font-medium' : evt.type === 'contact' ? 'text-solar-sky font-medium' : 'text-slate-300'}>
+                            {evt.type === 'purchase' ? 'Purchase' : evt.type === 'contact' ? 'Contact' : 'Add to cart'}
                           </span>
                         </td>
                         <td className="py-3 pr-4 text-slate-400">{new Date(evt.at).toLocaleString()}</td>
@@ -714,9 +714,17 @@ export default function AdminPage() {
                               <div className="mt-1 font-medium text-solar-leaf">Total ${(evt.totalCents / 100).toFixed(2)}</div>
                             </div>
                           )}
+                          {evt.type === 'contact' && (
+                            <p className="text-slate-300 whitespace-pre-wrap">{evt.message}</p>
+                          )}
                         </td>
                         <td className="py-3">
                           {evt.type === 'add_to_cart' && <span className="text-slate-500">—</span>}
+                          {evt.type === 'contact' && (
+                            <div className="text-slate-300">
+                              <div>{evt.name} — <a href={`mailto:${evt.email}`} className="text-solar-sky hover:underline">{evt.email}</a></div>
+                            </div>
+                          )}
                           {evt.type === 'purchase' && (
                             <div className="text-slate-300">
                               {(evt.email || evt.firstName || evt.lastName) && (

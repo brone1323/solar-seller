@@ -30,7 +30,15 @@ export type PurchaseEvent = {
   paypalOrderId?: string;
 };
 
-export type ActivityEvent = AddToCartEvent | PurchaseEvent;
+export type ContactEvent = {
+  type: 'contact';
+  at: string;
+  name: string;
+  email: string;
+  message: string;
+};
+
+export type ActivityEvent = AddToCartEvent | PurchaseEvent | ContactEvent;
 
 async function readEvents(): Promise<ActivityEvent[]> {
   const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
