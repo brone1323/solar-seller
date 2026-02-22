@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, FileText, Package, LogOut, MessageCircle, Settings, BarChart2 } from 'lucide-react';
 import { Product, ProductQuestion } from '@/types';
+import { DateTimePicker } from '@/components/DateTimePicker';
 
 const authFetch = (url: string, init?: RequestInit) =>
   fetch(url, { ...init, credentials: 'include' as RequestCredentials });
@@ -632,21 +633,13 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Sale ends at (date & time)</label>
-                  <input
-                    type="datetime-local"
-                    value={settings.saleEndsAt ? settings.saleEndsAt.slice(0, 16) : ''}
-                    onChange={(e) => setSettingsState((s) => ({ ...s, saleEndsAt: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
-                    onBlur={(e) => {
-                      const v = (e.target as HTMLInputElement).value;
-                      if (v) {
-                        const iso = new Date(v).toISOString();
-                        setSettingsState((s) => ({ ...s, saleEndsAt: iso }));
-                        saveSaleSettings(iso);
-                      }
-                    }}
-                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  <DateTimePicker
+                    value={settings.saleEndsAt || ''}
+                    onChange={(iso) => setSettingsState((s) => ({ ...s, saleEndsAt: iso }))}
+                    onSave={(iso) => saveSaleSettings(iso)}
+                    placeholder="Pick date and time"
                   />
-                  <p className="text-slate-500 text-xs mt-1">Pick the date and time, then close the calendar — it saves automatically. Or click Save sale settings below.</p>
+                  <p className="text-slate-500 text-xs mt-1">Pick the date and time, then click Save inside the calendar.</p>
                 </div>
                 <button type="button" onClick={() => saveSaleSettings()} className="w-full sm:w-auto px-6 py-3 rounded-lg bg-solar-leaf hover:bg-solar-forest font-medium">
                   Save sale settings
