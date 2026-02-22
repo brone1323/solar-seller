@@ -18,9 +18,9 @@ export function SalePopup() {
     fetch('/api/sale')
       .then((r) => r.json())
       .then((data) => {
-        const name = (data.saleName || '').trim();
+        const name = (data.saleName || '').trim() || 'Sale';
         const endsAt = (data.saleEndsAt || '').trim();
-        if (name && endsAt && new Date(endsAt) > new Date()) {
+        if (endsAt && new Date(endsAt) > new Date()) {
           setSale({ saleName: name, saleEndsAt: endsAt });
           setVisible(true);
         }
