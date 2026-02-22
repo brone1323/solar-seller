@@ -5,6 +5,8 @@ export interface Product {
   description: string;
   longDescription?: string;
   price: number;
+  /** When set, price is shown as sale price and regularPrice is shown with strikethrough (cents) */
+  regularPrice?: number;
   /** Optional text shown below the price (e.g. "Average installed price: $12,000") */
   priceSubtext?: string;
   images: string[];

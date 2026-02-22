@@ -34,6 +34,7 @@ export default function AdminPage() {
     description: '',
     longDescription: '',
     price: 0,
+    regularPrice: undefined,
     priceSubtext: '',
     category: 'Solar Kits',
     images: ['', '', ''],
@@ -57,7 +58,7 @@ export default function AdminPage() {
   const [answerDraft, setAnswerDraft] = useState<Record<string, string>>({});
   const [newQuestion, setNewQuestion] = useState({ productSlug: '', author: 'Guest', body: '' });
 
-  const [settings, setSettingsState] = useState<{ shippingDisabled: boolean }>({ shippingDisabled: false });
+  const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleName: string; saleEndsAt: string }>({ shippingDisabled: false, saleName: '', saleEndsAt: '' });
   const [settingsLoading, setSettingsLoading] = useState(false);
 
   useEffect(() => {
@@ -124,8 +125,8 @@ export default function AdminPage() {
     if (authenticated) {
       authFetch('/api/admin/settings')
         .then((r) => r.json())
-        .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled) }))
-        .catch(() => setSettingsState({ shippingDisabled: false }));
+        .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled), saleName: data?.saleName ?? '', saleEndsAt: data?.saleEndsAt ?? '' }))
+        .catch(() => setSettingsState({ shippingDisabled: false, saleName: '', saleEndsAt: '' }));
     }
   }, [authenticated]);
 
@@ -144,6 +145,22 @@ export default function AdminPage() {
       setSaveMessage(e instanceof Error ? e.message : 'Failed to save settings');
       setTimeout(() => setSaveMessage(null), 5000);
       setSettingsState((s) => ({ ...s, shippingDisabled: !shippingDisabled }));
+    }
+  };
+
+  const saveSaleSettings = async () => {
+    try {
+      const res = await authFetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ saleName: settings.saleName, saleEndsAt: settings.saleEndsAt }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
+      setSaveMessage('Sale settings saved');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Failed to save sale settings');
+      setTimeout(() => setSaveMessage(null), 5000);
     }
   };
 
@@ -218,6 +235,7 @@ export default function AdminPage() {
       description: '',
       longDescription: '',
       price: 0,
+      regularPrice: undefined,
       priceSubtext: '',
       category: 'Solar Kits',
       images: ['', '', ''],
@@ -253,6 +271,7 @@ export default function AdminPage() {
       description: p.description,
       longDescription: p.longDescription,
       price: p.price,
+      regularPrice: p.regularPrice ?? undefined,
       priceSubtext: p.priceSubtext ?? '',
       category: p.category,
       images: [imgs[0] || '', imgs[1] || '', imgs[2] || ''],
@@ -491,20 +510,50 @@ export default function AdminPage() {
         settingsLoading ? (
           <div className="text-slate-400">Loading settings...</div>
         ) : (
-          <div className="glass rounded-2xl p-8 max-w-xl">
-            <h2 className="font-display text-xl font-semibold mb-6">Settings</h2>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.shippingDisabled}
-                onChange={(e) => updateShippingDisabled(e.target.checked)}
-                className="w-5 h-5 rounded border-white/20"
-              />
-              <span>Disable shipping costs (for testing)</span>
-            </label>
-            <p className="text-slate-400 text-sm mt-3">
-              When enabled, checkout shows &quot;Free shipping (test mode)&quot; at $0 so you can run a test order without paying shipping.
-            </p>
+          <div className="glass rounded-2xl p-8 max-w-xl space-y-8">
+            <div>
+              <h2 className="font-display text-xl font-semibold mb-6">Settings</h2>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.shippingDisabled}
+                  onChange={(e) => updateShippingDisabled(e.target.checked)}
+                  className="w-5 h-5 rounded border-white/20"
+                />
+                <span>Disable shipping costs (for testing)</span>
+              </label>
+              <p className="text-slate-400 text-sm mt-3">
+                When enabled, checkout shows &quot;Free shipping (test mode)&quot; at $0 so you can run a test order without paying shipping.
+              </p>
+            </div>
+            <div className="border-t border-white/10 pt-8">
+              <h3 className="font-display font-semibold mb-4">Sale / countdown</h3>
+              <p className="text-slate-400 text-sm mb-4">These appear in the site-wide sale popup and next to sale prices.</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Sale name</label>
+                  <input
+                    type="text"
+                    value={settings.saleName}
+                    onChange={(e) => setSettingsState((s) => ({ ...s, saleName: e.target.value }))}
+                    placeholder="e.g. Summer Solar Sale"
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Sale ends at (date & time)</label>
+                  <input
+                    type="datetime-local"
+                    value={settings.saleEndsAt ? settings.saleEndsAt.slice(0, 16) : ''}
+                    onChange={(e) => setSettingsState((s) => ({ ...s, saleEndsAt: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  />
+                </div>
+                <button type="button" onClick={saveSaleSettings} className="px-6 py-2 rounded-lg bg-solar-leaf hover:bg-solar-forest">
+                  Save sale settings
+                </button>
+              </div>
+            </div>
           </div>
         )
       ) : tab === 'questions' ? (
@@ -795,11 +844,21 @@ export default function AdminPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Price (cents, e.g. 34900 = $349)</label>
+                  <label className="block text-sm text-slate-400 mb-1">Sale price (cents, e.g. 34900 = $349)</label>
                   <input
                     type="number"
                     value={newProduct.price || 0}
                     onChange={(e) => setNewProduct((p) => ({ ...p, price: Number(e.target.value) }))}
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Regular price (cents, optional — shown with strikethrough when set)</label>
+                  <input
+                    type="number"
+                    value={newProduct.regularPrice ?? ''}
+                    onChange={(e) => setNewProduct((p) => ({ ...p, regularPrice: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                    placeholder="Leave empty for no sale"
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                   />
                 </div>

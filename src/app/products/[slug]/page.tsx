@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { ProductImageCarousel } from '@/components/ProductImageCarousel';
 import { ProductQuestionsBox } from '@/components/ProductQuestionsBox';
+import { ProductSaleCountdown } from '@/components/ProductSaleCountdown';
 import { ShareButton } from '@/components/ShareButton';
 import { readProducts } from '@/lib/productStorage';
 
@@ -58,9 +59,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <div>
           <span className="text-solar-sky font-medium">{product.category}</span>
           <h1 className="font-display text-4xl font-bold mt-2 mb-4">{product.name}</h1>
-          <p className="text-3xl font-bold text-solar-leaf mb-1">
-            {new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.price / 100)}
-          </p>
+          <div className="mb-1">
+            {product.regularPrice != null && product.regularPrice > product.price ? (
+              <>
+                <p className="text-3xl font-bold text-solar-leaf">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.price / 100)}</p>
+                <p className="text-slate-400 text-lg line-through">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.regularPrice / 100)}</p>
+                <ProductSaleCountdown product={product} />
+              </>
+            ) : (
+              <p className="text-3xl font-bold text-solar-leaf">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.price / 100)}</p>
+            )}
+          </div>
           {product.priceSubtext && (
             <p className="text-slate-400 text-sm mb-6">{product.priceSubtext}</p>
           )}

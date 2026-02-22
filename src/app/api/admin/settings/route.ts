@@ -16,8 +16,10 @@ export async function PATCH(request: NextRequest) {
   }
   try {
     const body = await request.json().catch(() => ({}));
-    const updates: { shippingDisabled?: boolean } = {};
+    const updates: { shippingDisabled?: boolean; saleName?: string; saleEndsAt?: string } = {};
     if (typeof body.shippingDisabled === 'boolean') updates.shippingDisabled = body.shippingDisabled;
+    if (typeof body.saleName === 'string') updates.saleName = body.saleName.trim() || '';
+    if (typeof body.saleEndsAt === 'string') updates.saleEndsAt = body.saleEndsAt.trim() || '';
     const settings = await setSettings(updates);
     return NextResponse.json(settings);
   } catch (e) {

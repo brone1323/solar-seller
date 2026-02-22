@@ -6,10 +6,16 @@ const BLOB_PATH = 'settings/config.json';
 
 export interface AppSettings {
   shippingDisabled: boolean;
+  /** Name of the current sale (e.g. "Summer Solar Sale") */
+  saleName?: string;
+  /** Sale countdown end date/time, ISO string */
+  saleEndsAt?: string;
 }
 
 const defaults: AppSettings = {
   shippingDisabled: false,
+  saleName: '',
+  saleEndsAt: '',
 };
 
 export async function getSettings(): Promise<AppSettings> {
@@ -24,12 +30,13 @@ export async function getSettings(): Promise<AppSettings> {
     try {
       const redis = new Redis({ url: redisUrl, token: redisToken });
       const data = await redis.get(REDIS_KEY);
-      if (data && typeof data === 'object' && 'shippingDisabled' in data) {
-        return { ...defaults, shippingDisabled: Boolean((data as AppSettings).shippingDisabled) };
+      if (data && typeof data === 'object') {
+        const d = data as AppSettings;
+        return { ...defaults, shippingDisabled: Boolean(d.shippingDisabled), saleName: d.saleName ?? '', saleEndsAt: d.saleEndsAt ?? '' };
       }
       if (typeof data === 'string') {
         const parsed = JSON.parse(data) as AppSettings;
-        return { ...defaults, shippingDisabled: Boolean(parsed?.shippingDisabled) };
+        return { ...defaults, ...parsed, saleName: parsed?.saleName ?? '', saleEndsAt: parsed?.saleEndsAt ?? '' };
       }
     } catch (e) {
       console.error('Redis settings read error:', e);
@@ -45,7 +52,7 @@ export async function getSettings(): Promise<AppSettings> {
         const res = await fetch(configBlob.url, { cache: 'no-store' });
         if (res.ok) {
           const parsed = (await res.json()) as AppSettings;
-          return { ...defaults, shippingDisabled: Boolean(parsed?.shippingDisabled) };
+          return { ...defaults, ...parsed, saleName: parsed?.saleName ?? '', saleEndsAt: parsed?.saleEndsAt ?? '' };
         }
       }
     } catch (e) {

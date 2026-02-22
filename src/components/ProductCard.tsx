@@ -66,9 +66,16 @@ export function ProductCard({ product }: ProductCardProps) {
         </Link>
         <p className="text-slate-400 text-sm mt-2 line-clamp-2">{product.description}</p>
         <div className="flex items-center justify-between mt-4">
-          <span className="font-display font-bold text-xl text-solar-leaf">
-            {formatPrice(product.price)}
-          </span>
+          <div className="flex flex-col gap-0.5">
+            {product.regularPrice != null && product.regularPrice > product.price ? (
+              <>
+                <span className="font-display font-bold text-xl text-solar-leaf">{formatPrice(product.price)}</span>
+                <span className="text-slate-400 text-sm line-through">{formatPrice(product.regularPrice)}</span>
+              </>
+            ) : (
+              <span className="font-display font-bold text-xl text-solar-leaf">{formatPrice(product.price)}</span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <div onClick={(e) => e.stopPropagation()}>
               <ShareButton url={`/products/${product.slug}`} className="p-2" size="sm" />
