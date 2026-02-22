@@ -166,7 +166,7 @@ export default function AdminPage() {
 
   const saveSaleSettings = async (endsAtOverride?: string) => {
     const name = (settings.saleName || '').trim();
-    const endsAt = (endsAtOverride ?? settings.saleEndsAt || '').trim();
+    const endsAt = (endsAtOverride ?? (settings.saleEndsAt || '')).trim();
     if (!name) {
       setSaveMessage('Enter a sale name');
       setTimeout(() => setSaveMessage(null), 3000);
@@ -648,7 +648,7 @@ export default function AdminPage() {
                   />
                   <p className="text-slate-500 text-xs mt-1">Pick the date and time, then close the calendar — it saves automatically. Or click Save sale settings below.</p>
                 </div>
-                <button type="button" onClick={saveSaleSettings} className="w-full sm:w-auto px-6 py-3 rounded-lg bg-solar-leaf hover:bg-solar-forest font-medium">
+                <button type="button" onClick={() => saveSaleSettings()} className="w-full sm:w-auto px-6 py-3 rounded-lg bg-solar-leaf hover:bg-solar-forest font-medium">
                   Save sale settings
                 </button>
                 <div className="border-t border-white/10 pt-6 mt-6">
