@@ -29,20 +29,22 @@ export async function POST(request: NextRequest) {
     const from = process.env.RESEND_FROM_EMAIL || 'Solar DIY <onboarding@resend.dev>';
 
     if (apiKey) {
-      const subject = name || email ? `Contact from Solar DIY: ${name || email}` : 'Contact from Solar DIY';
+      const subject = name || email ? `Chat from Solar DIY: ${name || email}` : 'Chat from Solar DIY';
       const fromLine = name || email ? `<p><strong>From:</strong> ${name || '—'} ${email ? `&lt;${email}&gt;` : ''}</p>` : '<p><strong>From:</strong> (no name/email)</p>';
+      const payload: { from: string; to: string[]; subject: string; html: string; reply_to?: string } = {
+        from,
+        to: [to],
+        subject,
+        html: `${fromLine}<p><strong>Message:</strong></p><p>${message.replace(/\n/g, '<br>')}</p>${email ? '<p style="color:#64748b;font-size:12px;">Reply to this email — your reply will go to the visitor.</p>' : '<p style="color:#64748b;font-size:12px;">Visitor did not leave an email; reply here to keep a record.</p>'}`,
+      };
+      if (email) payload.reply_to = email;
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-          from,
-          to: [to],
-          subject,
-          html: `${fromLine}<p><strong>Message:</strong></p><p>${message.replace(/\n/g, '<br>')}</p>`,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const err = await res.text();

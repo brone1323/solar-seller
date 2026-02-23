@@ -59,7 +59,7 @@ export default function AdminPage() {
   const [answerDraft, setAnswerDraft] = useState<Record<string, string>>({});
   const [newQuestion, setNewQuestion] = useState({ productSlug: '', author: 'Guest', body: '' });
 
-  const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleName: string; saleEndsAt: string }>({ shippingDisabled: false, saleName: '', saleEndsAt: '' });
+  const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleName: string; saleEndsAt: string; whatsappNumber: string; phoneNumber: string }>({ shippingDisabled: false, saleName: '', saleEndsAt: '', whatsappNumber: '', phoneNumber: '' });
   const [saleDuration, setSaleDuration] = useState({ amount: 24, unit: 'hours' as 'hours' | 'days' });
 
   type ActivityEvent = { type: 'add_to_cart'; at: string; productId: string; productName: string; quantity: number } | { type: 'purchase'; at: string; email?: string; firstName?: string; lastName?: string; address?: string; city?: string; province?: string; postalCode?: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number; paypalOrderId?: string } | { type: 'contact'; at: string; name: string; email: string; message: string };
@@ -142,8 +142,8 @@ export default function AdminPage() {
     if (authenticated) {
       authFetch('/api/admin/settings')
         .then((r) => r.json())
-        .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled), saleName: data?.saleName ?? '', saleEndsAt: data?.saleEndsAt ?? '' }))
-        .catch(() => setSettingsState({ shippingDisabled: false, saleName: '', saleEndsAt: '' }));
+        .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled), saleName: data?.saleName ?? '', saleEndsAt: data?.saleEndsAt ?? '', whatsappNumber: data?.whatsappNumber ?? '', phoneNumber: data?.phoneNumber ?? '' }))
+        .catch(() => setSettingsState({ shippingDisabled: false, saleName: '', saleEndsAt: '', whatsappNumber: '', phoneNumber: '' }));
     }
   }, [authenticated]);
 
@@ -236,6 +236,23 @@ export default function AdminPage() {
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (e) {
       setSaveMessage(e instanceof Error ? e.message : 'Failed to end sale');
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
+  };
+
+  const saveLiveChatSettings = async () => {
+    try {
+      const res = await authFetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsappNumber: settings.whatsappNumber.trim().replace(/\D/g, ''), phoneNumber: settings.phoneNumber.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Failed to save');
+      setSaveMessage('Live chat settings saved. Chat bubble will show WhatsApp/Call when set.');
+      setTimeout(() => setSaveMessage(null), 4000);
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Failed to save live chat settings');
       setTimeout(() => setSaveMessage(null), 5000);
     }
   };
@@ -671,6 +688,35 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
+            <div className="border-t border-white/10 pt-8">
+              <h3 className="font-display font-semibold mb-4">Live chat / Contact</h3>
+              <p className="text-slate-400 text-sm mb-4">When set, the chat bubble offers &quot;Chat on WhatsApp&quot; and &quot;Call us&quot; so visitors can reach you live. Use digits only for WhatsApp (e.g. 15551234567).</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">WhatsApp number (with country code, digits only)</label>
+                  <input
+                    type="text"
+                    value={settings.whatsappNumber}
+                    onChange={(e) => setSettingsState((s) => ({ ...s, whatsappNumber: e.target.value.replace(/\D/g, '') }))}
+                    placeholder="e.g. 15551234567"
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Phone number (for Call us)</label>
+                  <input
+                    type="text"
+                    value={settings.phoneNumber}
+                    onChange={(e) => setSettingsState((s) => ({ ...s, phoneNumber: e.target.value }))}
+                    placeholder="e.g. +1 555-123-4567"
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  />
+                </div>
+                <button type="button" onClick={saveLiveChatSettings} className="px-6 py-2 rounded-lg bg-solar-leaf hover:bg-solar-forest">
+                  Save live chat settings
+                </button>
+              </div>
+            </div>
           </div>
         )
       ) : tab === 'activity' ? (
@@ -722,7 +768,11 @@ export default function AdminPage() {
                           {evt.type === 'add_to_cart' && <span className="text-slate-500">—</span>}
                           {evt.type === 'contact' && (
                             <div className="text-slate-300">
-                              <div>{evt.name} — <a href={`mailto:${evt.email}`} className="text-solar-sky hover:underline">{evt.email}</a></div>
+                              {evt.email !== '—' ? (
+                                <div>{evt.name !== '—' && `${evt.name} — `}<a href={`mailto:${evt.email}`} className="text-solar-sky hover:underline">{evt.email}</a></div>
+                              ) : (
+                                <div>{evt.name !== '—' ? evt.name : 'Anonymous'}</div>
+                              )}
                             </div>
                           )}
                           {evt.type === 'purchase' && (
