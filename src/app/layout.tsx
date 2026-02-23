@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Outfit, DM_Sans } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { SaleBanner } from '@/components/SaleBanner';
@@ -32,6 +33,7 @@ export default function RootLayout({
         </CartProvider>
         <SalePopup />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
