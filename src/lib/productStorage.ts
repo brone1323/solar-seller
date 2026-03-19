@@ -19,8 +19,12 @@ function readLocalProducts(): Product[] {
 
 export async function readProducts(): Promise<Product[]> {
   // 1. Try Upstash Redis (most reliable for product data)
+  const isVercel = Boolean(process.env.VERCEL);
   const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
   const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const hasRedis = Boolean(redisUrl && redisToken);
+  const hasBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  let storageReadHadError = false;
   if (redisUrl && redisToken) {
     try {
       const redis = new Redis({ url: redisUrl, token: redisToken });
@@ -31,6 +35,7 @@ export async function readProducts(): Promise<Product[]> {
       }
       return readLocalProducts();
     } catch (e) {
+      storageReadHadError = true;
       console.error('Redis read error:', e);
     }
   }
@@ -48,8 +53,15 @@ export async function readProducts(): Promise<Product[]> {
         }
       }
     } catch (e) {
+      storageReadHadError = true;
       console.error('Blob read error:', e);
     }
+  }
+
+  // In production, never silently fall back to local JSON if storage reads failed.
+  // Otherwise a write can overwrite your stored data with starter defaults.
+  if (isVercel && (hasRedis || hasBlob) && storageReadHadError) {
+    throw new Error('Failed to read products from configured storage');
   }
 
   return readLocalProducts();
