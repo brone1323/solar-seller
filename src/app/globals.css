@@ -11,25 +11,209 @@
   --solar-sage: #15803d;
 }
 
-body {
-  background: linear-gradient(180deg, #0f172a 0%, #0c4a6e 50%, #0f172a 100%);
-  background-attachment: fixed;
+/* ── Base ─────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
 }
 
+body {
+  background: linear-gradient(160deg, #0a0f1e 0%, #0c1a35 30%, #0a2a1a 65%, #0a0f1e 100%);
+  background-attachment: fixed;
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+::-webkit-scrollbar-thumb { background: rgba(14,165,233,0.35); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(14,165,233,0.6); }
+
+/* ── Animations ───────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideRight {
+  from { transform: translateX(-12px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-30px) scale(1.04); }
+}
+@keyframes orbFloat2 {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50%       { transform: translateY(-20px) scale(1.06) rotate(5deg); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes borderPulse {
+  0%, 100% { border-color: rgba(14,165,233,0.3); }
+  50%       { border-color: rgba(14,165,233,0.7); }
+}
+
+/* ── Utilities ────────────────────────────────── */
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .text-balance { text-wrap: balance; }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--solar-sky) 0%, var(--solar-leaf) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  
+  .gradient-text-warm {
+    background: linear-gradient(135deg, #fbbf24 0%, var(--solar-sky) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Background gradient */
   .gradient-solar {
     background: linear-gradient(135deg, var(--solar-sky) 0%, var(--solar-forest) 100%);
   }
-  
+
+  /* Glass variants */
   .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    @apply bg-white/[0.04] backdrop-blur-xl border border-white/10;
   }
-  
+  .glass-strong {
+    @apply bg-white/[0.08] backdrop-blur-2xl border border-white/15;
+  }
+  .glass-card {
+    @apply bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-2xl;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  }
+  .glass-card:hover {
+    @apply border-solar-sky/40 bg-white/[0.07];
+    box-shadow: 0 8px 40px rgba(14,165,233,0.12), 0 2px 12px rgba(0,0,0,0.3);
+  }
+
+  /* Glows */
   .glow-solar {
-    box-shadow: 0 0 40px rgba(14, 165, 233, 0.3), 0 0 80px rgba(34, 197, 94, 0.2);
+    box-shadow: 0 0 40px rgba(14,165,233,0.25), 0 0 80px rgba(34,197,94,0.15);
   }
+  .glow-sky {
+    box-shadow: 0 0 30px rgba(14,165,233,0.4);
+  }
+  .glow-leaf {
+    box-shadow: 0 0 30px rgba(34,197,94,0.4);
+  }
+  .glow-btn {
+    box-shadow: 0 4px 24px rgba(14,165,233,0.35), 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  /* Animations */
+  .animate-fade-up   { animation: fadeUp 0.6s ease both; }
+  .animate-fade-in   { animation: fadeIn 0.5s ease both; }
+  .animate-slide-right { animation: slideRight 0.5s ease both; }
+  .animate-orb-float  { animation: orbFloat 8s ease-in-out infinite; }
+  .animate-orb-float2 { animation: orbFloat2 11s ease-in-out infinite; }
+  .animate-pulse-glow { animation: pulseGlow 2.5s ease-in-out infinite; }
+  .animate-spin-slow  { animation: spin-slow 20s linear infinite; }
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  .delay-400 { animation-delay: 0.4s; }
+  .delay-500 { animation-delay: 0.5s; }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold;
+  }
+  .badge-sky {
+    @apply badge bg-solar-sky/15 border border-solar-sky/30 text-solar-sky;
+  }
+  .badge-leaf {
+    @apply badge bg-solar-leaf/15 border border-solar-leaf/30 text-solar-leaf;
+  }
+  .badge-amber {
+    @apply badge bg-amber-400/15 border border-amber-400/30 text-amber-400;
+  }
+
+  /* Divider */
+  .divider {
+    @apply h-px bg-gradient-to-r from-transparent via-white/10 to-transparent;
+  }
+
+  /* Section label */
+  .section-label {
+    @apply text-xs font-bold uppercase tracking-widest text-solar-sky/70;
+  }
+
+  /* Stat card */
+  .stat-card {
+    @apply glass-card p-5 flex flex-col gap-1;
+  }
+
+  /* Shimmer button effect */
+  .btn-solar {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--solar-sky) 0%, var(--solar-forest) 100%);
+    transition: opacity 0.2s ease, transform 0.15s ease;
+  }
+  .btn-solar:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-solar:active { transform: translateY(0); }
+  .btn-solar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+    background-size: 200% 100%;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .btn-solar:hover::after {
+    opacity: 1;
+    animation: shimmer 1s ease-in-out;
+  }
+
+  /* Orb decorations */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+  }
+  .orb-sky  { background: rgba(14,165,233,0.18); }
+  .orb-leaf { background: rgba(34,197,94,0.15); }
+  .orb-deep { background: rgba(12,74,110,0.35); }
+}
+
+/* ── Hero gradient overlay pattern ───────────── */
+.hero-grid-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ── Product card image overlay ───────────────── */
+.product-img-overlay {
+  background: linear-gradient(to top, rgba(10,15,30,0.8) 0%, transparent 50%);
 }

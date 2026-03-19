@@ -58,8 +58,9 @@ export function FeaturedKitsGrid({ featuredProducts }: { featuredProducts: Produ
       ))}
 
       {filtered.length === 0 && (
-        <div className="col-span-full text-center py-10 text-slate-400">
-          No kits found for your selection.
+        <div className="col-span-full text-center py-14 glass rounded-2xl border border-white/10">
+          <p className="text-slate-400 font-medium mb-1">No kits found for this selection.</p>
+          <p className="text-slate-600 text-sm">Try changing the grid type or battery preference above.</p>
         </div>
       )}
     </div>

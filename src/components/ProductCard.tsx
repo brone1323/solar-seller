@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Check } from 'lucide-react';
 import { ShareButton } from './ShareButton';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -19,79 +19,124 @@ function formatPrice(cents: number) {
   }).format(cents / 100);
 }
 
+function savingsPercent(regular: number, sale: number) {
+  return Math.round(((regular - sale) / regular) * 100);
+}
+
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const imgs = product.images?.filter(Boolean) || [];
   const [imgIndex, setImgIndex] = useState(0);
+  const [added, setAdded] = useState(false);
   const displayImg = imgs[imgIndex] || imgs[0] || '/placeholder.svg';
   const hasMultiple = imgs.length > 1;
+  const onSale = product.regularPrice != null && product.regularPrice > product.price;
+  const savings = onSale ? savingsPercent(product.regularPrice!, product.price) : 0;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    addToCart(product);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  };
 
   return (
-    <div className="group glass rounded-2xl overflow-hidden hover:border-solar-sky/50 transition-all duration-300 hover:shadow-xl hover:shadow-solar-sky/10">
-      <Link href={`/products/${product.slug}`} className="block">
+    <div className="group glass-card overflow-hidden flex flex-col">
+      {/* Image area */}
+      <Link href={`/products/${product.slug}`} className="block relative">
         <div
-          className="relative aspect-square bg-solar-deep/50 overflow-hidden"
+          className="relative aspect-[4/3] bg-solar-deep/40 overflow-hidden"
           onMouseEnter={() => hasMultiple && setImgIndex((i) => (i + 1) % imgs.length)}
+          onMouseLeave={() => setImgIndex(0)}
         >
           <Image
             src={displayImg}
             alt={product.name}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
+
+          {/* Bottom overlay gradient */}
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
+
+          {/* Badges */}
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+            {product.featured && (
+              <span className="badge-leaf text-[10px]">★ Featured</span>
+            )}
+            {onSale && (
+              <span className="badge-amber text-[10px]">Save {savings}%</span>
+            )}
+          </div>
+
+          {/* Image dots */}
           {hasMultiple && (
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
               {imgs.map((_, i) => (
                 <span
                   key={i}
-                  className={`w-1.5 h-1.5 rounded-full ${i === imgIndex ? 'bg-white' : 'bg-white/40'}`}
+                  className={`transition-all duration-200 rounded-full ${
+                    i === imgIndex ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/40'
+                  }`}
                 />
               ))}
             </div>
           )}
-          {product.featured && (
-            <span className="absolute top-3 left-3 px-2 py-1 rounded-md bg-solar-leaf text-xs font-bold">
-              Featured
-            </span>
-          )}
         </div>
       </Link>
-      <div className="p-5">
-        <span className="text-solar-sky text-sm font-medium">{product.category}</span>
+
+      {/* Info area */}
+      <div className="p-5 flex flex-col flex-1">
+        <span className="text-solar-sky text-xs font-bold uppercase tracking-wider">{product.category}</span>
+
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-display font-semibold text-lg mt-1 group-hover:text-solar-sky transition-colors line-clamp-2">
+          <h3 className="font-display font-bold text-base mt-1.5 group-hover:text-solar-sky transition-colors line-clamp-2 leading-snug">
             {product.name}
           </h3>
         </Link>
-        <p className="text-slate-400 text-sm mt-2 line-clamp-2">{product.description}</p>
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex flex-col gap-0.5">
-            {product.regularPrice != null && product.regularPrice > product.price ? (
+
+        <p className="text-slate-500 text-sm mt-2 line-clamp-2 leading-relaxed flex-1">{product.description}</p>
+
+        {/* Price + CTA */}
+        <div className="flex items-end justify-between mt-5 gap-3">
+          <div className="flex flex-col gap-0.5 min-w-0">
+            {onSale ? (
               <>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-slate-400 text-sm font-medium">Sale price</span>
-                  <span className="font-display font-bold text-xl text-solar-leaf">{formatPrice(product.price)}</span>
-                </div>
-                <span className="font-display font-bold text-xl text-slate-400 line-through">{formatPrice(product.regularPrice)}</span>
+                <span className="text-slate-500 text-xs line-through">{formatPrice(product.regularPrice!)}</span>
+                <span className="font-display font-bold text-xl text-solar-leaf leading-none">
+                  {formatPrice(product.price)}
+                </span>
               </>
             ) : (
-              <span className="font-display font-bold text-xl text-solar-leaf">{formatPrice(product.price)}</span>
+              <span className="font-display font-bold text-xl text-solar-leaf leading-none">
+                {formatPrice(product.price)}
+              </span>
             )}
+            <span className="text-slate-600 text-[10px] font-medium">CAD incl. tax</span>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 flex-shrink-0">
             <div onClick={(e) => e.stopPropagation()}>
-              <ShareButton url={`/products/${product.slug}`} className="p-2" size="sm" />
+              <ShareButton url={`/products/${product.slug}`} className="p-2 opacity-60 hover:opacity-100 transition-opacity" size="sm" />
             </div>
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                addToCart(product);
-              }}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-solar-sky to-solar-leaf hover:opacity-90 transition-opacity font-medium"
+              onClick={handleAddToCart}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                added
+                  ? 'bg-solar-leaf/20 border border-solar-leaf/40 text-solar-leaf'
+                  : 'btn-solar text-white'
+              }`}
             >
-              <ShoppingCart className="w-4 h-4" />
-              Add to Cart
+              {added ? (
+                <>
+                  <Check className="w-4 h-4" /> Added
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-4 h-4" /> Add to Cart
+                </>
+              )}
             </button>
           </div>
         </div>

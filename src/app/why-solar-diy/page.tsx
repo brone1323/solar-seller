@@ -1,164 +1,162 @@
 import Link from 'next/link';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, Zap, FileText, PlayCircle, MessageCircle, Layout } from 'lucide-react';
+
+const steps = [
+  { num: 1, label: 'Share your project info', desc: 'Tell us your roof size, goals, and electrical basics.' },
+  { num: 2, label: 'Get your system package', desc: 'Equipment + directions + drawings + video links delivered.' },
+  { num: 3, label: 'Submit permits with confidence', desc: 'Use our ready-made documents to get approval fast.' },
+  { num: 4, label: 'Install step-by-step', desc: 'Follow the guide with live expert support on standby.' },
+  { num: 5, label: 'Pass inspection & operate', desc: 'Turn on your system and start generating clean power.' },
+];
+
+const included = [
+  { icon: Layout, title: 'A system designed for your home', color: 'solar-sky', items: ['System layout guidance', 'Correct equipment pairing', 'Clean bill of materials'] },
+  { icon: FileText, title: 'Permit-ready drawings & docs', color: 'solar-leaf', items: ['Plan-style drawings', 'Electrical single-line diagrams', 'Equipment spec sheets', 'Utility submission support'] },
+  { icon: Zap, title: 'Step-by-step directions', color: 'accent-sun', items: ['Installation sequence checklist', 'Hardware & mounting guidance', 'Cable management tips', 'Safety reminders'] },
+  { icon: PlayCircle, title: 'Curated installation videos', color: 'solar-sky', items: ['How-to-mount walkthroughs', 'Wiring routing examples', 'Inspection-readiness guidance'] },
+  { icon: MessageCircle, title: 'Live expert support', color: 'solar-leaf', items: ['Quick troubleshooting', 'Photo-based "does this look right?" checks', 'Clarifying steps & diagrams'] },
+];
+
+const checkItems = [
+  'Right equipment matched to your home',
+  'Clear, step-by-step installation directions',
+  'Permit & utility approval drawings',
+  'Video guidance for visual learners',
+  'Live expert chat when you\'re stuck',
+];
 
 export default function WhySolarDIYPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="font-display text-4xl lg:text-5xl font-bold mb-6">
-        Why Solar-DIY.com is Better
-      </h1>
-      <p className="text-xl text-slate-300 mb-12 leading-relaxed">
-        DIY solar, done right — with a plan, not just parts
-      </p>
-
-      <p className="text-slate-300 mb-12 leading-relaxed">
-        Anyone can sell you panels and a box of hardware. The difference is what happens after the delivery truck leaves.
-      </p>
-
-      <p className="text-slate-300 mb-12 leading-relaxed">
-        At Solar-DIY.com, you get the equipment + the full roadmap: clear directions, permit-ready drawings, installation video links, and the paperwork support that helps you move from &quot;I want solar&quot; to approved, installed, and turned on.
-      </p>
-
-      <p className="text-slate-300 mb-16 font-medium">
-        You&apos;re not buying a kit. You&apos;re getting a complete DIY solar project package.
-      </p>
-
-      <h2 className="font-display text-2xl font-bold mb-8">
-        What you get (that most &quot;kit sellers&quot; don&apos;t include)
-      </h2>
-
-      <div className="space-y-16">
-        <section>
-          <h3 className="font-display text-xl font-semibold mb-4 text-solar-leaf">
-            1) A system designed for your home
-          </h3>
-          <p className="text-slate-300 mb-4">
-            Not a generic bundle. Your plan is built around your roof, electrical setup, and goals—so everything fits and works together the first time.
+    <div>
+      {/* Hero */}
+      <section className="relative overflow-hidden py-20 lg:py-28">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#060d1f] via-[#082240]/70 to-[#041a0f]/50" />
+        <div className="orb orb-sky w-[400px] h-[400px] top-[-80px] right-[-80px] animate-orb-float opacity-50" />
+        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="section-label mb-4">Why choose us</p>
+          <h1 className="font-display text-4xl lg:text-6xl font-bold mb-6 tracking-tight leading-[1.05]">
+            Solar DIY, done{' '}
+            <span className="gradient-text">right</span>
+          </h1>
+          <p className="text-xl text-slate-300 leading-relaxed max-w-2xl mb-8">
+            Anyone can sell you panels and a box of hardware. We give you the equipment <em>and</em> the full roadmap — so you go from &quot;I want solar&quot; to approved, installed, and turned on.
           </p>
-          <p className="text-slate-400 font-medium mb-2">Included:</p>
-          <ul className="list-disc list-inside text-slate-300 space-y-1">
-            <li>System layout guidance (so panels land where they should)</li>
-            <li>Correct equipment pairing (panels, inverter, racking, protection)</li>
-            <li>Clean, organized bill of materials so you know exactly what&apos;s included</li>
-          </ul>
-        </section>
-
-        <section>
-          <h3 className="font-display text-xl font-semibold mb-4 text-solar-leaf">
-            2) Permit-ready drawings & documentation
-          </h3>
-          <p className="text-slate-300 mb-4">
-            Permits and utility approval can be the most confusing part of DIY solar. We make it easier by providing the drawings and supporting documents you need to submit.
-          </p>
-          <p className="text-slate-400 font-medium mb-2">Included (varies by area):</p>
-          <ul className="list-disc list-inside text-slate-300 space-y-1">
-            <li>Plan-style drawings (layout + key details)</li>
-            <li>Electrical single-line diagrams</li>
-            <li>Equipment spec sheets and labels</li>
-            <li>Permit/utility submission support documents</li>
-            <li>Guidance for inspection readiness</li>
-          </ul>
-          <p className="text-slate-400 mt-4">
-            Local requirements vary — but our goal stays the same: help you submit with confidence and reduce back-and-forth.
-          </p>
-        </section>
-
-        <section>
-          <h3 className="font-display text-xl font-semibold mb-4 text-solar-leaf">
-            3) Step-by-step directions you can actually follow
-          </h3>
-          <p className="text-slate-300 mb-4">
-            No guessing. No &quot;figure it out from forums.&quot; We give you a clear build path so you know what to do, in what order, and what to double-check.
-          </p>
-          <p className="text-slate-400 font-medium mb-2">Included:</p>
-          <ul className="list-disc list-inside text-slate-300 space-y-1">
-            <li>Installation sequence checklist</li>
-            <li>Hardware and mounting guidance</li>
-            <li>Cable management and best-practice tips</li>
-            <li>Safety reminders and common-mistake prevention</li>
-          </ul>
-        </section>
-
-        <section>
-          <h3 className="font-display text-xl font-semibold mb-4 text-solar-leaf">
-            4) Installation video links for each key step
-          </h3>
-          <p className="text-slate-300 mb-4">
-            Some people learn best by watching. We provide curated video links that match the steps you&apos;re doing—so you can see what &quot;correct&quot; looks like before you drill, mount, or wire.
-          </p>
-          <p className="text-slate-400 font-medium mb-2">Expect:</p>
-          <ul className="list-disc list-inside text-slate-300 space-y-1">
-            <li>&quot;How to mount&quot; walkthroughs</li>
-            <li>&quot;How to route and secure wiring&quot; examples</li>
-            <li>&quot;What inspectors look for&quot; style guidance</li>
-          </ul>
-        </section>
-
-        <section>
-          <h3 className="font-display text-xl font-semibold mb-4 text-solar-leaf">
-            5) Live chat access to real technical experts
-          </h3>
-          <p className="text-slate-300 mb-4">
-            DIY doesn&apos;t mean you&apos;re alone.
-          </p>
-          <p className="text-slate-300 mb-4">
-            When you&apos;re on the roof, in the garage, or staring at a diagram thinking &quot;wait…,&quot; you can use live chat to get support from people who actually know solar installs.
-          </p>
-          <p className="text-slate-400 font-medium mb-2">Live support can help with:</p>
-          <ul className="list-disc list-inside text-slate-300 space-y-1">
-            <li>Quick troubleshooting</li>
-            <li>Photo-based &quot;does this look right?&quot; checks</li>
-            <li>Clarifying steps and diagrams</li>
-            <li>Catching issues early (before they become expensive)</li>
-          </ul>
-        </section>
-      </div>
-
-      <div className="glass rounded-2xl p-8 my-16">
-        <h3 className="font-display text-xl font-semibold mb-6">
-          The result: fewer delays, fewer mistakes, faster approval
-        </h3>
-        <p className="text-slate-300 mb-6">
-          Most DIY headaches come from missing documentation, unclear steps, or having no one to ask when something doesn&apos;t make sense. Our whole approach is built to prevent that.
-        </p>
-        <ul className="space-y-2">
-          {['Right equipment', 'Clear directions', 'Drawings and documents for permits/utility approval', 'Video help for visual learners', 'Live expert chat when you\'re stuck'].map((item) => (
-            <li key={item} className="flex items-center gap-2 text-slate-200">
-              <Check className="w-5 h-5 text-solar-leaf shrink-0" />
-              {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <section className="mb-16">
-        <h3 className="font-display text-xl font-semibold mb-6">How it works</h3>
-        <ol className="list-decimal list-inside text-slate-300 space-y-3">
-          <li>Share your project info (roof, goals, electrical basics)</li>
-          <li>Get your system package (equipment + directions + drawings + video links)</li>
-          <li>Submit for permits / utility approval with confidence</li>
-          <li>Install step-by-step with support available</li>
-          <li>Pass inspection and get approval to operate (where applicable)</li>
-        </ol>
+          <Link
+            href="/products"
+            className="btn-solar inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-white"
+          >
+            Browse Equipment <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </section>
 
-      <div className="glass rounded-2xl p-8 text-center">
-        <h3 className="font-display text-2xl font-bold mb-4">
-          Ready to build your DIY solar the smart way?
-        </h3>
-        <p className="text-slate-300 mb-6">
-          If you want a DIY solar setup that&apos;s organized, supported, and permit-ready, Solar-DIY.com is built for you.
-        </p>
-        <p className="text-slate-400 mb-8">
-          Start your plan today — and if you have questions, open live chat and talk to a technical expert.
-        </p>
-        <Link
-          href="/products"
-          className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold hover:opacity-90 transition-opacity"
-        >
-          Start Your Plan <ArrowRight className="w-5 h-5" />
-        </Link>
-      </div>
+      {/* What you get */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="mb-10">
+          <p className="section-label mb-2">What&apos;s included</p>
+          <h2 className="font-display text-3xl font-bold tracking-tight">
+            What you get that most &quot;kit sellers&quot; don&apos;t include
+          </h2>
+        </div>
+
+        <div className="space-y-5">
+          {included.map((item, i) => (
+            <div key={item.title} className="glass-card p-6 flex gap-5 items-start">
+              <div className={`w-11 h-11 rounded-xl bg-${item.color}/15 border border-${item.color}/25 flex items-center justify-center flex-shrink-0`}>
+                <item.icon className={`w-5 h-5 text-${item.color}`} />
+              </div>
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-slate-600 text-xs font-bold">{String(i + 1).padStart(2, '0')}</span>
+                  <h3 className="font-display font-bold text-base">{item.title}</h3>
+                </div>
+                <ul className="space-y-1.5">
+                  {item.items.map((li) => (
+                    <li key={li} className="flex items-center gap-2 text-sm text-slate-400">
+                      <Check className="w-3.5 h-3.5 text-solar-leaf flex-shrink-0" />
+                      {li}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Results card */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="glass-strong rounded-3xl p-8 lg:p-10 border-solar-sky/15" style={{ background: 'rgba(14,165,233,0.04)' }}>
+          <h3 className="font-display text-2xl font-bold mb-2">
+            The result: fewer delays, fewer mistakes
+          </h3>
+          <p className="text-slate-400 mb-6 leading-relaxed">
+            Most DIY headaches come from missing docs, unclear steps, or nobody to ask when something doesn&apos;t make sense. Our approach prevents that.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {checkItems.map((item) => (
+              <div key={item} className="flex items-center gap-2.5 text-slate-200 text-sm">
+                <div className="w-5 h-5 rounded-full bg-solar-leaf/20 border border-solar-leaf/40 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3 h-3 text-solar-leaf" />
+                </div>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="mb-8">
+          <p className="section-label mb-2">The process</p>
+          <h2 className="font-display text-3xl font-bold tracking-tight">How it works</h2>
+        </div>
+        <div className="relative">
+          {/* Vertical line */}
+          <div className="absolute left-5 top-6 bottom-6 w-px bg-white/[0.07] hidden sm:block" />
+          <div className="space-y-4">
+            {steps.map((step) => (
+              <div key={step.num} className="flex gap-5 items-start">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-solar-sky/15 border border-solar-sky/30 flex items-center justify-center font-display font-bold text-solar-sky text-sm z-10">
+                  {step.num}
+                </div>
+                <div className="pb-4 pt-1.5">
+                  <div className="font-semibold text-white text-sm mb-0.5">{step.label}</div>
+                  <div className="text-slate-500 text-sm">{step.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        <div className="glass-card rounded-3xl p-10 text-center glow-solar border-solar-sky/20">
+          <h3 className="font-display text-2xl lg:text-3xl font-bold mb-3 tracking-tight">
+            Ready to build your DIY solar{' '}
+            <span className="gradient-text">the smart way?</span>
+          </h3>
+          <p className="text-slate-400 max-w-md mx-auto mb-8 leading-relaxed">
+            If you want a solar setup that&apos;s organized, supported, and permit-ready — Solar-DIY is built for you.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/products"
+              className="btn-solar inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-white"
+            >
+              Browse Equipment <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link
+              href="#contact"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl glass border border-white/15 font-semibold hover:bg-white/10 transition-all"
+            >
+              Talk to an Expert
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

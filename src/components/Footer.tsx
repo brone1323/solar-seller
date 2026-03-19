@@ -1,54 +1,133 @@
 import Link from 'next/link';
-import { Sun, Mail } from 'lucide-react';
+import { Sun, Mail, MapPin, Phone } from 'lucide-react';
+
+const quickLinks = [
+  { href: '/products', label: 'Shop All Equipment' },
+  { href: '/blog', label: 'Understanding Solar' },
+  { href: '/why-solar-diy', label: 'Why Solar-DIY' },
+  { href: '/cart', label: 'Shopping Cart' },
+];
+
+const categories = [
+  { href: '/products?category=panels', label: 'Solar Panels' },
+  { href: '/products?category=inverters', label: 'Inverters' },
+  { href: '/products?category=batteries', label: 'Batteries' },
+  { href: '/products?category=mounting', label: 'Mounting Systems' },
+  { href: '/products?category=kits', label: 'Complete Kits' },
+];
 
 export function Footer() {
   return (
-    <footer className="glass border-t border-white/10 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <Sun className="w-8 h-8 text-solar-leaf" />
-              <span className="font-display font-bold text-xl">Solar DIY</span>
+    <footer className="mt-auto border-t border-white/[0.08]" style={{ background: 'rgba(6,10,24,0.85)', backdropFilter: 'blur(20px)' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
+
+        {/* Main grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
+
+          {/* Brand */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <Link href="/" className="inline-flex items-center gap-2.5 mb-5 group">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-solar-sky to-solar-forest group-hover:scale-105 transition-transform">
+                <Sun className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-display font-bold text-xl text-white tracking-tight">
+                Solar<span className="text-solar-leaf">DIY</span>
+              </span>
             </Link>
-            <p className="text-slate-400 max-w-md">
-              Your trusted source for premium solar equipment and DIY installation supplies.
-              Power your home with clean, renewable energy.
+            <p className="text-slate-500 text-sm leading-relaxed max-w-xs">
+              Canada&apos;s trusted source for premium solar equipment. Power your home with clean, renewable energy — on your own terms.
             </p>
+            <div className="mt-5 flex items-center gap-3">
+              <a
+                href="mailto:info@solar-diy.com"
+                className="flex items-center gap-2 text-slate-500 hover:text-solar-sky text-sm transition-colors"
+              >
+                <Mail className="w-4 h-4" /> info@solar-diy.com
+              </a>
+            </div>
           </div>
+
+          {/* Quick links */}
           <div>
-            <h4 className="font-display font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li><Link href="/products" className="text-slate-400 hover:text-white">Shop</Link></li>
-              <li><Link href="/blog" className="text-slate-400 hover:text-white">Understanding Solar</Link></li>
-              <li><Link href="/why-solar-diy" className="text-slate-400 hover:text-white">Why Solar-DIY</Link></li>
-              <li><Link href="/cart" className="text-slate-400 hover:text-white">Cart</Link></li>
-              <li><Link href="#contact" className="text-slate-400 hover:text-white">Contact</Link></li>
+            <h4 className="font-display font-semibold text-sm text-white mb-5 uppercase tracking-wider">Quick Links</h4>
+            <ul className="space-y-3">
+              {quickLinks.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="text-slate-500 hover:text-white text-sm transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
+
+          {/* Categories */}
           <div>
-            <h4 className="font-display font-semibold mb-4">Contact</h4>
-            <ul className="space-y-2 text-slate-400">
-              <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> Email us at info@solar-diy.com</li>
+            <h4 className="font-display font-semibold text-sm text-white mb-5 uppercase tracking-wider">Equipment</h4>
+            <ul className="space-y-3">
+              {categories.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="text-slate-500 hover:text-white text-sm transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h4 className="font-display font-semibold text-sm text-white mb-5 uppercase tracking-wider">Contact Us</h4>
+            <ul className="space-y-3 text-sm text-slate-500">
+              <li className="flex items-start gap-2.5">
+                <Mail className="w-4 h-4 text-solar-sky mt-0.5 flex-shrink-0" />
+                <a href="mailto:info@solar-diy.com" className="hover:text-white transition-colors">
+                  info@solar-diy.com
+                </a>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <Phone className="w-4 h-4 text-solar-sky mt-0.5 flex-shrink-0" />
+                <span>Mon–Fri, 9 am – 5 pm MST</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <MapPin className="w-4 h-4 text-solar-sky mt-0.5 flex-shrink-0" />
+                <span>Canada-wide shipping</span>
+              </li>
             </ul>
           </div>
         </div>
 
-        <div id="contact" className="mt-12 p-8 rounded-2xl bg-white/5 border border-white/10">
-          <h3 className="font-display text-xl font-semibold mb-2">Contact Us</h3>
-          <p className="text-slate-400 mb-4 max-w-xl">
-            Have questions about our solar equipment or need help with your order? We&apos;re here to help.
+        {/* Contact CTA */}
+        <div
+          id="contact"
+          className="glass rounded-2xl p-8 mb-10 border-solar-sky/15"
+          style={{ background: 'rgba(14,165,233,0.04)' }}
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <h3 className="font-display text-lg font-bold mb-1">Have questions before you buy?</h3>
+              <p className="text-slate-400 text-sm max-w-md">
+                Our solar experts are happy to help you choose the right kit for your home and budget.
+              </p>
+            </div>
+            <a
+              href="mailto:info@solar-diy.com"
+              className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-solar font-semibold text-sm text-white whitespace-nowrap"
+            >
+              <Mail className="w-4 h-4" /> Email us
+            </a>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-white/[0.06]">
+          <p className="text-slate-600 text-sm">
+            © {new Date().getFullYear()} SolarDIY. All rights reserved.
           </p>
-          <a
-            href="mailto:info@solar-diy.com"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-medium hover:opacity-90 transition-opacity"
-          >
-            <Mail className="w-5 h-5" /> Email us at info@solar-diy.com
-          </a>
-        </div>
-
-        <div className="border-t border-white/10 mt-8 pt-8 text-center text-slate-500 text-sm">
-          © {new Date().getFullYear()} Solar DIY. All rights reserved.
+          <div className="flex items-center gap-5 text-sm text-slate-600">
+            <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-slate-400 transition-colors">Terms</Link>
+          </div>
         </div>
       </div>
     </footer>
