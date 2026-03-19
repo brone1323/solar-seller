@@ -62,6 +62,16 @@ export default function AdminPage() {
   const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleName: string; saleEndsAt: string }>({ shippingDisabled: false, saleName: '', saleEndsAt: '' });
   const [saleDuration, setSaleDuration] = useState({ amount: 24, unit: 'hours' as 'hours' | 'days' });
 
+  type GridMode = 'off_grid' | 'on_grid';
+  type BatteryChem = 'lead_acid' | 'lithium';
+
+  const GRID_TYPE_SPEC_KEY = 'Grid Type';
+  const BATTERY_TYPE_SPEC_KEY = 'Battery Type';
+
+  // Default open requested by user: off grid + lead acid.
+  const [gridMode, setGridMode] = useState<GridMode>('off_grid');
+  const [batteryChem, setBatteryChem] = useState<BatteryChem>('lead_acid');
+
   type ActivityEvent = { type: 'add_to_cart'; at: string; productId: string; productName: string; quantity: number } | { type: 'purchase'; at: string; email?: string; firstName?: string; lastName?: string; address?: string; city?: string; province?: string; postalCode?: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number; paypalOrderId?: string } | { type: 'contact'; at: string; name: string; email: string; message: string };
   const [activityList, setActivityList] = useState<ActivityEvent[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
@@ -315,7 +325,10 @@ export default function AdminPage() {
       priceSubtext: '',
       category: 'Solar Kits',
       images: ['', '', ''],
-      specifications: {},
+      specifications:
+        gridMode === 'off_grid'
+          ? { [GRID_TYPE_SPEC_KEY]: gridMode, [BATTERY_TYPE_SPEC_KEY]: batteryChem }
+          : { [GRID_TYPE_SPEC_KEY]: gridMode },
       featured: false,
     });
   };
@@ -342,6 +355,13 @@ export default function AdminPage() {
   const startEdit = (p: Product) => {
     setEditing(p);
     const imgs = p.images?.filter(Boolean) || [];
+
+    // Sync the top toggles with the kit being edited.
+    const gridVal = p.specifications?.[GRID_TYPE_SPEC_KEY];
+    if (gridVal === 'on_grid' || gridVal === 'off_grid') setGridMode(gridVal);
+    const batteryVal = p.specifications?.[BATTERY_TYPE_SPEC_KEY];
+    if (batteryVal === 'lead_acid' || batteryVal === 'lithium') setBatteryChem(batteryVal);
+
     setNewProduct({
       name: p.name,
       description: p.description,
@@ -355,6 +375,30 @@ export default function AdminPage() {
       featured: p.featured,
     });
     setShowForm(true);
+  };
+
+  const applyGridToggleToDraft = (nextGrid: GridMode, nextBattery?: BatteryChem) => {
+    setNewProduct((p) => {
+      const specs = { ...(p.specifications || {}) };
+      specs[GRID_TYPE_SPEC_KEY] = nextGrid;
+      if (nextGrid === 'off_grid') {
+        specs[BATTERY_TYPE_SPEC_KEY] = nextBattery ?? batteryChem;
+      } else {
+        delete specs[BATTERY_TYPE_SPEC_KEY];
+      }
+      return { ...p, specifications: specs };
+    });
+  };
+
+  const applyBatteryToggleToDraft = (nextBattery: BatteryChem) => {
+    setNewProduct((p) => {
+      const specs = { ...(p.specifications || {}) };
+      specs[GRID_TYPE_SPEC_KEY] = gridMode;
+      if (gridMode === 'off_grid') {
+        specs[BATTERY_TYPE_SPEC_KEY] = nextBattery;
+      }
+      return { ...p, specifications: specs };
+    });
   };
 
   const saveBlog = async () => {
@@ -983,6 +1027,77 @@ export default function AdminPage() {
       ) : (
         <>
           <div className="glass rounded-xl p-6 mb-8 max-w-xl">
+            <h3 className="font-display font-semibold mb-3">Kit Setup Labels</h3>
+            <p className="text-slate-400 text-sm mb-4">
+              Label each Solar Kit as Off-grid or On-grid. For Off-grid, also choose lead-acid vs lithium.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setGridMode('off_grid');
+                  applyGridToggleToDraft('off_grid', batteryChem);
+                }}
+                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                  gridMode === 'off_grid'
+                    ? 'border-solar-leaf bg-solar-leaf/15 text-white'
+                    : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
+                }`}
+              >
+                Off grid
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setGridMode('on_grid');
+                  applyGridToggleToDraft('on_grid');
+                }}
+                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                  gridMode === 'on_grid'
+                    ? 'border-solar-leaf bg-solar-leaf/15 text-white'
+                    : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
+                }`}
+              >
+                On grid
+              </button>
+            </div>
+
+            {gridMode === 'off_grid' && (
+              <div className="mt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBatteryChem('lead_acid');
+                    applyBatteryToggleToDraft('lead_acid');
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                    batteryChem === 'lead_acid'
+                      ? 'border-solar-leaf bg-solar-leaf/15 text-white'
+                      : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
+                  }`}
+                >
+                  Lead acid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBatteryChem('lithium');
+                    applyBatteryToggleToDraft('lithium');
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                    batteryChem === 'lithium'
+                      ? 'border-solar-leaf bg-solar-leaf/15 text-white'
+                      : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
+                  }`}
+                >
+                  Lithium
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="glass rounded-xl p-6 mb-8 max-w-xl">
             <h3 className="font-display font-semibold mb-3">Test mode</h3>
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -1242,7 +1357,30 @@ export default function AdminPage() {
                 <div>
                   <h3 className="font-semibold">{p.name}</h3>
                   <p className="text-slate-400 text-sm">
-                    {p.category} • {new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(p.price / 100)}
+                    {p.category}
+                    {p.category === 'Solar Kits' && (
+                      <>
+                        {' '}
+                        •{' '}
+                        {p.specifications?.[GRID_TYPE_SPEC_KEY] === 'on_grid'
+                          ? 'On grid'
+                          : p.specifications?.[GRID_TYPE_SPEC_KEY] === 'off_grid'
+                            ? 'Off grid'
+                            : 'Unassigned'}
+                        {p.specifications?.[GRID_TYPE_SPEC_KEY] === 'off_grid' && (
+                          <>
+                            {' '}
+                            /{' '}
+                            {p.specifications?.[BATTERY_TYPE_SPEC_KEY] === 'lithium'
+                              ? 'Lithium'
+                              : p.specifications?.[BATTERY_TYPE_SPEC_KEY] === 'lead_acid'
+                                ? 'Lead acid'
+                                : 'Unassigned'}
+                          </>
+                        )}
+                      </>
+                    )}{' '}
+                    • {new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(p.price / 100)}
                   </p>
                 </div>
                 <div className="flex gap-2">
