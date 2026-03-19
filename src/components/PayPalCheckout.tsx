@@ -31,10 +31,10 @@ function PayPalButtonsWrapper({ onSuccess, shippingCost = 0, gstCost = 0 }: { on
           Check your connection or try again. You can also contact us to complete your order.
         </p>
         <a
-          href="mailto:info@solar-diy.com"
+          href="mailto:info@solar-diy.ca"
           className="text-solar-leaf hover:underline text-sm mt-1"
         >
-          Email us at info@solar-diy.com
+          Email us at info@solar-diy.ca
         </a>
       </div>
     );

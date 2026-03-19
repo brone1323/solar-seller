@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Zap, Shield, Wrench, Phone, Star, Sun, Battery, Cpu } from 'lucide-react';
+import { ArrowRight, Zap, Shield, Wrench, Mail, Star, Sun, Battery, Cpu } from 'lucide-react';
 import { readProducts } from '@/lib/productStorage';
 import { HomeGridSelector } from '@/components/HomeGridSelector';
 import { FeaturedKitsGrid } from '@/components/FeaturedKitsGrid';
@@ -217,12 +217,12 @@ export default async function HomePage() {
               <ProductsGridLink className="btn-solar inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl font-bold text-lg text-white glow-btn">
                 Browse All Kits <ArrowRight className="w-5 h-5" />
               </ProductsGridLink>
-              <Link
-                href="#contact"
+              <a
+                href="mailto:info@solar-diy.ca"
                 className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl glass border border-white/15 font-semibold text-lg hover:bg-white/10 transition-all duration-200"
               >
-                <Phone className="w-5 h-5" /> Talk to an Expert
-              </Link>
+                <Mail className="w-5 h-5" /> Email us at info@solar-diy.ca
+              </a>
             </div>
           </div>
         </div>

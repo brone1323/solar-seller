@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sun, Mail, MapPin, Phone } from 'lucide-react';
+import { Sun, Mail, MapPin } from 'lucide-react';
 
 const quickLinks = [
   { href: '/products', label: 'Shop All Equipment' },
@@ -39,10 +39,10 @@ export function Footer() {
             </p>
             <div className="mt-5 flex items-center gap-3">
               <a
-                href="mailto:info@solar-diy.com"
+                href="mailto:info@solar-diy.ca"
                 className="flex items-center gap-2 text-slate-500 hover:text-solar-sky text-sm transition-colors"
               >
-                <Mail className="w-4 h-4" /> info@solar-diy.com
+                <Mail className="w-4 h-4" /> info@solar-diy.ca
               </a>
             </div>
           </div>
@@ -81,13 +81,9 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-slate-500">
               <li className="flex items-start gap-2.5">
                 <Mail className="w-4 h-4 text-solar-sky mt-0.5 flex-shrink-0" />
-                <a href="mailto:info@solar-diy.com" className="hover:text-white transition-colors">
-                  info@solar-diy.com
+                <a href="mailto:info@solar-diy.ca" className="hover:text-white transition-colors">
+                  info@solar-diy.ca
                 </a>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <Phone className="w-4 h-4 text-solar-sky mt-0.5 flex-shrink-0" />
-                <span>Mon–Fri, 9 am – 5 pm MST</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-solar-sky mt-0.5 flex-shrink-0" />
@@ -111,7 +107,7 @@ export function Footer() {
               </p>
             </div>
             <a
-              href="mailto:info@solar-diy.com"
+              href="mailto:info@solar-diy.ca"
               className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-solar font-semibold text-sm text-white whitespace-nowrap"
             >
               <Mail className="w-4 h-4" /> Email us
