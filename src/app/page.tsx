@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { ArrowRight, Zap, Shield, MapPin, Info } from 'lucide-react';
-import { ProductCard } from '@/components/ProductCard';
 import { readProducts } from '@/lib/productStorage';
-import { Product } from '@/types';
+import { HomeGridSelector } from '@/components/HomeGridSelector';
+import { FeaturedKitsGrid } from '@/components/FeaturedKitsGrid';
+import { ProductsGridLink } from '@/components/ProductsGridLink';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,12 +29,11 @@ export default async function HomePage() {
               Complete DIY solar packages with directions, drawings, and support.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/products"
+              <ProductsGridLink
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold text-lg hover:opacity-90 transition-opacity glow-solar"
               >
                 Shop Equipment <ArrowRight className="w-5 h-5" />
-              </Link>
+              </ProductsGridLink>
               <Link
                 href="/why-solar-diy"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl glass border border-white/20 font-semibold hover:bg-white/10 transition-colors"
@@ -44,6 +44,10 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <HomeGridSelector />
+      </div>
 
       {/* Features */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -76,15 +80,13 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex justify-between items-end mb-10">
           <h2 className="font-display text-3xl font-bold">Featured Equipment</h2>
-          <Link href="/products" className="text-solar-sky hover:text-solar-leaf font-medium transition-colors">
+          <ProductsGridLink
+            className="text-solar-sky hover:text-solar-leaf font-medium transition-colors"
+          >
             View All →
-          </Link>
+          </ProductsGridLink>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <FeaturedKitsGrid featuredProducts={featuredProducts} />
       </section>
 
       {/* CTA */}
@@ -98,10 +100,15 @@ export default async function HomePage() {
           </p>
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold hover:opacity-90 transition-opacity"
+            className="hidden"
           >
             Start Shopping <ArrowRight className="w-5 h-5" />
           </Link>
+          <ProductsGridLink
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold hover:opacity-90 transition-opacity"
+          >
+            Start Shopping <ArrowRight className="w-5 h-5" />
+          </ProductsGridLink>
         </div>
       </section>
     </div>
