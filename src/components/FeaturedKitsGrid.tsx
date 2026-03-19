@@ -37,12 +37,13 @@ export function FeaturedKitsGrid({ featuredProducts }: { featuredProducts: Produ
       // Only filter Solar Kits; other featured equipment stays visible.
       if (p.category !== 'Solar Kits') return true;
 
-      const gridType = p.specifications?.[GRID_TYPE_SPEC_KEY];
-      if (gridMode === 'on_grid') {
-        return gridType === 'on_grid';
-      }
+      // Backward-compatible defaults: older kits may not have been labeled yet.
+      // Default open is off-grid on lead-acid side.
+      const gridType = (p.specifications?.[GRID_TYPE_SPEC_KEY] as GridMode | undefined) ?? 'off_grid';
+      const batteryType =
+        (p.specifications?.[BATTERY_TYPE_SPEC_KEY] as BatteryChem | undefined) ?? 'lead_acid';
 
-      const batteryType = p.specifications?.[BATTERY_TYPE_SPEC_KEY];
+      if (gridMode === 'on_grid') return gridType === 'on_grid';
       return gridType === 'off_grid' && batteryType === batteryChem;
     });
   }, [featuredProducts, gridMode, batteryChem]);
