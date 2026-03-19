@@ -1027,77 +1027,6 @@ export default function AdminPage() {
       ) : (
         <>
           <div className="glass rounded-xl p-6 mb-8 max-w-xl">
-            <h3 className="font-display font-semibold mb-3">Kit Setup Labels</h3>
-            <p className="text-slate-400 text-sm mb-4">
-              Label each Solar Kit as Off-grid or On-grid. For Off-grid, also choose lead-acid vs lithium.
-            </p>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setGridMode('off_grid');
-                  applyGridToggleToDraft('off_grid', batteryChem);
-                }}
-                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                  gridMode === 'off_grid'
-                    ? 'border-solar-leaf bg-solar-leaf/15 text-white'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
-                }`}
-              >
-                Off grid
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setGridMode('on_grid');
-                  applyGridToggleToDraft('on_grid');
-                }}
-                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                  gridMode === 'on_grid'
-                    ? 'border-solar-leaf bg-solar-leaf/15 text-white'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
-                }`}
-              >
-                On grid
-              </button>
-            </div>
-
-            {gridMode === 'off_grid' && (
-              <div className="mt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBatteryChem('lead_acid');
-                    applyBatteryToggleToDraft('lead_acid');
-                  }}
-                  className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                    batteryChem === 'lead_acid'
-                      ? 'border-solar-leaf bg-solar-leaf/15 text-white'
-                      : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
-                  }`}
-                >
-                  Lead acid
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBatteryChem('lithium');
-                    applyBatteryToggleToDraft('lithium');
-                  }}
-                  className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                    batteryChem === 'lithium'
-                      ? 'border-solar-leaf bg-solar-leaf/15 text-white'
-                      : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
-                  }`}
-                >
-                  Lithium
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="glass rounded-xl p-6 mb-8 max-w-xl">
             <h3 className="font-display font-semibold mb-3">Test mode</h3>
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -1116,6 +1045,8 @@ export default function AdminPage() {
             <button
               onClick={() => {
                 setEditing(null);
+                setGridMode('off_grid');
+                setBatteryChem('lead_acid');
                 resetForm();
                 setShowForm(true);
               }}
@@ -1128,6 +1059,78 @@ export default function AdminPage() {
               <h2 className="font-display text-xl font-semibold mb-6">
                 {editing ? 'Edit Kit' : 'New Kit'}
               </h2>
+
+              <div className="glass rounded-xl p-6 mb-6">
+                <h3 className="font-display font-semibold mb-3">Kit Setup Labels</h3>
+                <p className="text-slate-400 text-sm mb-4">
+                  Label each Solar Kit as Off-grid or On-grid. For Off-grid, also choose lead-acid vs lithium.
+                </p>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGridMode('off_grid');
+                      applyGridToggleToDraft('off_grid', batteryChem);
+                    }}
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                      gridMode === 'off_grid'
+                        ? 'border-solar-leaf bg-solar-leaf/15 text-white'
+                        : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
+                    }`}
+                  >
+                    Off grid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGridMode('on_grid');
+                      applyGridToggleToDraft('on_grid');
+                    }}
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                      gridMode === 'on_grid'
+                        ? 'border-solar-leaf bg-solar-leaf/15 text-white'
+                        : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
+                    }`}
+                  >
+                    On grid
+                  </button>
+                </div>
+
+                {gridMode === 'off_grid' && (
+                  <div className="mt-4 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBatteryChem('lead_acid');
+                        applyBatteryToggleToDraft('lead_acid');
+                      }}
+                      className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                        batteryChem === 'lead_acid'
+                          ? 'border-solar-leaf bg-solar-leaf/15 text-white'
+                          : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
+                      }`}
+                    >
+                      Lead acid
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBatteryChem('lithium');
+                        applyBatteryToggleToDraft('lithium');
+                      }}
+                      className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                        batteryChem === 'lithium'
+                          ? 'border-solar-leaf bg-solar-leaf/15 text-white'
+                          : 'border-white/20 bg-white/5 hover:bg-white/10 text-slate-200'
+                      }`}
+                    >
+                      Lithium
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="grid gap-4">
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Name</label>
