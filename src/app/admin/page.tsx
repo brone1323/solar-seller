@@ -381,13 +381,14 @@ export default function AdminPage() {
       regularPrice: p.regularPrice ?? undefined,
       priceSubtext: p.priceSubtext ?? '',
       category: p.category,
-      images: [imgs[0] || '', imgs[1] || '', imgs[2] || ''],
+      images: imgs.length ? imgs : [''],
       specifications: p.specifications || {},
       featured: p.featured,
       specSheets: p.specSheets ?? [],
       youtubeLinks: p.youtubeLinks ?? [],
     });
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const applyGridToggleToDraft = (nextGrid: GridMode, nextBattery?: BatteryChem) => {
