@@ -120,3 +120,15 @@ export async function appendActivity(event: ActivityEvent): Promise<void> {
   events.push(event);
   await writeEvents(events);
 }
+
+export async function deleteActivity(index: number): Promise<void> {
+  const events = await readEvents();
+  if (index < 0 || index >= events.length) throw new Error('Index out of range');
+  // Sort matches getActivity sort order (descending by date), so map back to original index
+  const sorted = [...events].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+  const target = sorted[index];
+  const originalIndex = events.indexOf(target);
+  if (originalIndex === -1) throw new Error('Event not found');
+  events.splice(originalIndex, 1);
+  await writeEvents(events);
+}

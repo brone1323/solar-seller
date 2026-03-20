@@ -10,6 +10,10 @@ export interface Product {
   /** Optional text shown below the price (e.g. "Average installed price: $12,000") */
   priceSubtext?: string;
   images: string[];
+  /** Downloadable spec sheet PDFs */
+  specSheets?: { label: string; url: string }[];
+  /** YouTube video links for install/product guidance */
+  youtubeLinks?: { title: string; url: string }[];
   category: string;
   specifications: Record<string, string>;
   featured?: boolean;

@@ -38,9 +38,11 @@ export default function AdminPage() {
     regularPrice: undefined,
     priceSubtext: '',
     category: 'Solar Kits',
-    images: ['', '', ''],
+    images: [''],
     specifications: {},
     featured: false,
+    specSheets: [],
+    youtubeLinks: [],
   });
 
   const [blogPosts, setBlogPosts] = useState<BlogArticle[]>([]);
@@ -262,6 +264,8 @@ export default function AdminPage() {
       slug: (newProduct.name || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
       specifications: typeof newProduct.specifications === 'object' ? newProduct.specifications : {},
       images: Array.isArray(newProduct.images) ? newProduct.images.filter(Boolean) : [],
+      specSheets: (newProduct.specSheets || []).filter((s) => s.url),
+      youtubeLinks: (newProduct.youtubeLinks || []).filter((v) => v.url),
     };
     try {
       if (editing) {
@@ -329,12 +333,14 @@ export default function AdminPage() {
       regularPrice: undefined,
       priceSubtext: '',
       category: 'Solar Kits',
-      images: ['', '', ''],
+      images: [''],
       specifications:
         gridMode === 'off_grid'
           ? { [GRID_TYPE_SPEC_KEY]: gridMode, [BATTERY_TYPE_SPEC_KEY]: batteryChem }
           : { [GRID_TYPE_SPEC_KEY]: gridMode },
       featured: false,
+      specSheets: [],
+      youtubeLinks: [],
     });
   };
 
@@ -378,6 +384,8 @@ export default function AdminPage() {
       images: [imgs[0] || '', imgs[1] || '', imgs[2] || ''],
       specifications: p.specifications || {},
       featured: p.featured,
+      specSheets: p.specSheets ?? [],
+      youtubeLinks: p.youtubeLinks ?? [],
     });
     setShowForm(true);
   };
@@ -803,6 +811,15 @@ export default function AdminPage() {
                         {evt.type === 'abandoned_cart' && (
                           <span className="text-amber-400 font-bold">${(evt.subtotalCents / 100).toFixed(2)} lost</span>
                         )}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!confirm('Delete this event?')) return;
+                            await authFetch('/api/admin/activity', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ index: i }) });
+                            setActivityList((prev) => prev.filter((_, j) => j !== i));
+                          }}
+                          className="ml-auto text-xs text-slate-600 hover:text-red-400 transition-colors px-2 py-1 rounded"
+                        >Delete</button>
                       </div>
 
                       <div className="mt-3 text-sm">
@@ -1257,90 +1274,91 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-3">Kit Images (up to 3 — scroll through on product page)</label>
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="block text-sm text-slate-400">Kit Images (unlimited — first shown on listing, all scrollable on product page)</label>
+                    <button
+                      type="button"
+                      onClick={() => setNewProduct((p) => ({ ...p, images: [...(p.images || []), ''] }))}
+                      className="text-solar-sky text-sm hover:underline"
+                    >+ Add image</button>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {[0, 1, 2].map((i) => {
-                      const imgs = newProduct.images || ['', '', ''];
-                      const url = imgs[i] || '';
-                      return (
-                        <div key={i} className="space-y-2">
-                          <span className="text-xs text-slate-500">Image {i + 1}</span>
-                          <div className="relative aspect-square rounded-lg overflow-hidden glass border border-white/20">
-                            {url ? (
-                              <>
-                                <img src={url} alt="" className="w-full h-full object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const next = [...(newProduct.images || ['', '', ''])];
-                                    next[i] = '';
-                                    setNewProduct((p) => ({ ...p, images: next }));
-                                  }}
-                                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500/90 text-white text-sm hover:bg-red-500"
-                                >
-                                  ×
-                                </button>
-                              </>
-                            ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 p-2">
-                                <input
-                                  type="file"
-                                  accept="image/jpeg,image/png,image/webp,image/gif"
-                                  className="text-xs file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-solar-sky file:text-white file:text-xs file:cursor-pointer"
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (!file) return;
-                                    const fd = new FormData();
-                                    fd.append('file', file);
-                                    try {
-                                      const res = await authFetch('/api/upload', { method: 'POST', body: fd });
-                                      const data = await res.json();
-                                      if (data.url) {
-                                        const next = [...(newProduct.images || ['', '', ''])];
-                                        next[i] = data.url;
-                                        setNewProduct((p) => ({ ...p, images: next }));
-                                      } else {
-                                        alert(data.error || 'Upload failed');
-                                      }
-                                    } catch (err) {
-                                      alert('Upload failed');
+                    {(newProduct.images || ['']).map((url, i) => (
+                      <div key={i} className="space-y-2">
+                        <span className="text-xs text-slate-500">Image {i + 1}</span>
+                        <div className="relative aspect-square rounded-lg overflow-hidden glass border border-white/20">
+                          {url ? (
+                            <>
+                              <img src={url} alt="" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = [...(newProduct.images || [])];
+                                  next.splice(i, 1);
+                                  setNewProduct((p) => ({ ...p, images: next.length ? next : [''] }));
+                                }}
+                                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500/90 text-white text-sm hover:bg-red-500"
+                              >×</button>
+                            </>
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 p-2">
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                className="text-xs file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-solar-sky file:text-white file:text-xs file:cursor-pointer"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const fd = new FormData();
+                                  fd.append('file', file);
+                                  try {
+                                    const res = await authFetch('/api/upload', { method: 'POST', body: fd });
+                                    const data = await res.json();
+                                    if (data.url) {
+                                      const next = [...(newProduct.images || [])];
+                                      next[i] = data.url;
+                                      setNewProduct((p) => ({ ...p, images: next }));
+                                    } else {
+                                      alert(data.error || 'Upload failed');
                                     }
+                                  } catch (err) {
+                                    alert('Upload failed');
+                                  }
+                                  e.target.value = '';
+                                }}
+                              />
+                              <span className="text-xs mt-1">or</span>
+                              <input
+                                type="text"
+                                placeholder="Paste URL"
+                                className="w-full mt-1 px-2 py-1 rounded text-xs bg-white/10 border border-white/20 text-white"
+                                onBlur={(e) => {
+                                  const v = e.target.value.trim();
+                                  if (v) {
+                                    const next = [...(newProduct.images || [])];
+                                    next[i] = v;
+                                    setNewProduct((p) => ({ ...p, images: next }));
                                     e.target.value = '';
-                                  }}
-                                />
-                                <span className="text-xs mt-1">or</span>
-                                <input
-                                  type="text"
-                                  placeholder="Paste URL"
-                                  className="w-full mt-1 px-2 py-1 rounded text-xs bg-white/10 border border-white/20 text-white"
-                                  onBlur={(e) => {
-                                    const v = e.target.value.trim();
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const v = (e.target as HTMLInputElement).value.trim();
                                     if (v) {
-                                      const next = [...(newProduct.images || ['', '', ''])];
+                                      const next = [...(newProduct.images || [])];
                                       next[i] = v;
                                       setNewProduct((p) => ({ ...p, images: next }));
-                                      e.target.value = '';
+                                      (e.target as HTMLInputElement).value = '';
                                     }
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      const v = (e.target as HTMLInputElement).value.trim();
-                                      if (v) {
-                                        const next = [...(newProduct.images || ['', '', ''])];
-                                        next[i] = v;
-                                        setNewProduct((p) => ({ ...p, images: next }));
-                                        (e.target as HTMLInputElement).value = '';
-                                      }
-                                    }
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
+                                  }
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <div>
@@ -1383,6 +1401,40 @@ export default function AdminPage() {
                     ))}
                   </div>
                 </div>
+                {/* Spec Sheets */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-sm text-slate-400">Spec Sheets / Documents (PDF links)</label>
+                    <button type="button" onClick={() => setNewProduct((p) => ({ ...p, specSheets: [...(p.specSheets || []), { label: '', url: '' }] }))} className="text-solar-sky text-sm hover:underline">+ Add</button>
+                  </div>
+                  <div className="space-y-2">
+                    {(newProduct.specSheets || []).map((sheet, i) => (
+                      <div key={i} className="flex gap-2">
+                        <input type="text" value={sheet.label} onChange={(e) => { const n = [...(newProduct.specSheets || [])]; n[i] = { ...n[i], label: e.target.value }; setNewProduct((p) => ({ ...p, specSheets: n })); }} placeholder="Label (e.g. Panel Datasheet)" className="w-1/3 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm" />
+                        <input type="text" value={sheet.url} onChange={(e) => { const n = [...(newProduct.specSheets || [])]; n[i] = { ...n[i], url: e.target.value }; setNewProduct((p) => ({ ...p, specSheets: n })); }} placeholder="https://..." className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm" />
+                        <button type="button" onClick={() => { const n = [...(newProduct.specSheets || [])]; n.splice(i, 1); setNewProduct((p) => ({ ...p, specSheets: n })); }} className="px-2 text-red-400 hover:text-red-300">×</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* YouTube Links */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-sm text-slate-400">YouTube Videos (install & product guides)</label>
+                    <button type="button" onClick={() => setNewProduct((p) => ({ ...p, youtubeLinks: [...(p.youtubeLinks || []), { title: '', url: '' }] }))} className="text-solar-sky text-sm hover:underline">+ Add</button>
+                  </div>
+                  <div className="space-y-2">
+                    {(newProduct.youtubeLinks || []).map((video, i) => (
+                      <div key={i} className="flex gap-2">
+                        <input type="text" value={video.title} onChange={(e) => { const n = [...(newProduct.youtubeLinks || [])]; n[i] = { ...n[i], title: e.target.value }; setNewProduct((p) => ({ ...p, youtubeLinks: n })); }} placeholder="Video title" className="w-1/3 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm" />
+                        <input type="text" value={video.url} onChange={(e) => { const n = [...(newProduct.youtubeLinks || [])]; n[i] = { ...n[i], url: e.target.value }; setNewProduct((p) => ({ ...p, youtubeLinks: n })); }} placeholder="https://youtube.com/watch?v=..." className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm" />
+                        <button type="button" onClick={() => { const n = [...(newProduct.youtubeLinks || [])]; n.splice(i, 1); setNewProduct((p) => ({ ...p, youtubeLinks: n })); }} className="px-2 text-red-400 hover:text-red-300">×</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="flex gap-4 pt-4">
                   <button
                     onClick={saveProduct}
