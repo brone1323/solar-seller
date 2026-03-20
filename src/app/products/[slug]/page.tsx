@@ -6,7 +6,7 @@ import { ProductQuestionsBox } from '@/components/ProductQuestionsBox';
 import { ProductSaleCountdown } from '@/components/ProductSaleCountdown';
 import { ShareButton } from '@/components/ShareButton';
 import { readProducts } from '@/lib/productStorage';
-import { FileText, Youtube, ExternalLink, BookOpen, HeadphonesIcon, FileCheck } from 'lucide-react';
+import { FileText, Youtube, ExternalLink, BookOpen, HeadphonesIcon, FileCheck, Wrench } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,8 +56,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </nav>
 
       {/* What's included banner */}
-      <div className="mb-8 grid sm:grid-cols-3 gap-3">
+      <div className="mb-8 grid sm:grid-cols-4 gap-3">
         {[
+          { icon: <Wrench className="w-4 h-4 text-solar-amber" />, text: 'Racking & mounting hardware included' },
           { icon: <FileCheck className="w-4 h-4 text-solar-leaf" />, text: 'Custom project install manual included' },
           { icon: <HeadphonesIcon className="w-4 h-4 text-solar-sky" />, text: 'Technical expert bookable anytime' },
           { icon: <BookOpen className="w-4 h-4 text-solar-amber" />, text: 'Spec sheets & video guides included' },

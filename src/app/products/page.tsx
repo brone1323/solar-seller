@@ -1,7 +1,7 @@
 import { ProductCard } from '@/components/ProductCard';
 import { SolarSizer } from '@/components/SolarSizer';
 import { readProducts } from '@/lib/productStorage';
-import { SlidersHorizontal, Package, BookOpen, HeadphonesIcon, FileCheck } from 'lucide-react';
+import { SlidersHorizontal, Package, BookOpen, HeadphonesIcon, FileCheck, Wrench } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,8 +32,13 @@ export default async function ProductsPage() {
       </div>
 
       {/* Value prop banner */}
-      <div className="mb-10 grid sm:grid-cols-3 gap-4">
+      <div className="mb-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
+          {
+            icon: <Wrench className="w-5 h-5 text-solar-amber" />,
+            title: 'Racking Included',
+            desc: 'Every kit includes all mounting hardware and racking — nothing extra to source or buy.',
+          },
           {
             icon: <FileCheck className="w-5 h-5 text-solar-leaf" />,
             title: 'Custom Install Manual',
