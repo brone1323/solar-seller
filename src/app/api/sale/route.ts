@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const settings = await getSettings();
   return NextResponse.json({
+    saleActive: Boolean(settings.saleActive),
     saleName: settings.saleName || '',
     saleEndsAt: settings.saleEndsAt || '',
   });

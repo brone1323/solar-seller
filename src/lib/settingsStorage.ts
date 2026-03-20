@@ -6,14 +6,17 @@ const BLOB_PATH = 'settings/config.json';
 
 export interface AppSettings {
   shippingDisabled: boolean;
+  /** Whether the sale banner is active */
+  saleActive?: boolean;
   /** Name of the current sale (e.g. "Summer Solar Sale") */
   saleName?: string;
   /** Sale countdown end date/time, ISO string */
   saleEndsAt?: string;
-  }
+}
 
 const defaults: AppSettings = {
   shippingDisabled: false,
+  saleActive: false,
   saleName: '',
   saleEndsAt: '',
 };
@@ -32,11 +35,11 @@ export async function getSettings(): Promise<AppSettings> {
       const data = await redis.get(REDIS_KEY);
       if (data && typeof data === 'object') {
         const d = data as AppSettings;
-        return { ...defaults, shippingDisabled: Boolean(d.shippingDisabled), saleName: d.saleName ?? '', saleEndsAt: d.saleEndsAt ?? '' };
+        return { ...defaults, shippingDisabled: Boolean(d.shippingDisabled), saleActive: Boolean(d.saleActive), saleName: d.saleName ?? '', saleEndsAt: d.saleEndsAt ?? '' };
       }
       if (typeof data === 'string') {
         const parsed = JSON.parse(data) as AppSettings;
-        return { ...defaults, ...parsed, saleName: parsed?.saleName ?? '', saleEndsAt: parsed?.saleEndsAt ?? '' };
+        return { ...defaults, ...parsed, saleActive: Boolean(parsed?.saleActive), saleName: parsed?.saleName ?? '', saleEndsAt: parsed?.saleEndsAt ?? '' };
       }
     } catch (e) {
       console.error('Redis settings read error:', e);

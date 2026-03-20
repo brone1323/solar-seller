@@ -61,8 +61,7 @@ export default function AdminPage() {
   const [answerDraft, setAnswerDraft] = useState<Record<string, string>>({});
   const [newQuestion, setNewQuestion] = useState({ productSlug: '', author: 'Guest', body: '' });
 
-  const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleName: string; saleEndsAt: string }>({ shippingDisabled: false, saleName: '', saleEndsAt: '' });
-  const [saleDuration, setSaleDuration] = useState({ amount: 24, unit: 'hours' as 'hours' | 'days' });
+  const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleActive: boolean; saleName: string; saleEndsAt: string }>({ shippingDisabled: false, saleActive: false, saleName: '', saleEndsAt: '' });
 
   type GridMode = 'off_grid' | 'on_grid';
   type BatteryChem = 'lead_acid' | 'lithium';
@@ -159,8 +158,8 @@ export default function AdminPage() {
     if (authenticated) {
       authFetch('/api/admin/settings')
         .then((r) => r.json())
-        .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled), saleName: data?.saleName ?? '', saleEndsAt: data?.saleEndsAt ?? '' }))
-        .catch(() => setSettingsState({ shippingDisabled: false, saleName: '', saleEndsAt: '' }));
+        .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled), saleActive: Boolean(data?.saleActive), saleName: data?.saleName ?? '', saleEndsAt: data?.saleEndsAt ?? '' }))
+        .catch(() => setSettingsState({ shippingDisabled: false, saleActive: false, saleName: '', saleEndsAt: '' }));
     }
   }, [authenticated]);
 
@@ -200,7 +199,7 @@ export default function AdminPage() {
       const res = await authFetch('/api/admin/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ saleName: name, saleEndsAt: endsAt }),
+        body: JSON.stringify({ saleActive: settings.saleActive, saleName: name, saleEndsAt: endsAt }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Failed to save');
@@ -212,50 +211,6 @@ export default function AdminPage() {
     }
   };
 
-  const startSale = async () => {
-    const name = (settings.saleName || '').trim();
-    if (!name) {
-      setSaveMessage('Enter a sale name first');
-      setTimeout(() => setSaveMessage(null), 3000);
-      return;
-    }
-    const ms = saleDuration.unit === 'hours'
-      ? saleDuration.amount * 60 * 60 * 1000
-      : saleDuration.amount * 24 * 60 * 60 * 1000;
-    const saleEndsAt = new Date(Date.now() + ms).toISOString();
-    setSettingsState((s) => ({ ...s, saleName: name, saleEndsAt }));
-    try {
-      const res = await authFetch('/api/admin/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ saleName: name, saleEndsAt }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Failed to save');
-      setSaveMessage('Sale started. Countdown will show on the site and in the popup.');
-      setTimeout(() => setSaveMessage(null), 4000);
-    } catch (e) {
-      setSaveMessage(e instanceof Error ? e.message : 'Failed to start sale');
-      setTimeout(() => setSaveMessage(null), 5000);
-    }
-  };
-
-  const endSale = async () => {
-    try {
-      const res = await authFetch('/api/admin/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ saleName: '', saleEndsAt: '' }),
-      });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
-      setSettingsState((s) => ({ ...s, saleName: '', saleEndsAt: '' }));
-      setSaveMessage('Sale ended');
-      setTimeout(() => setSaveMessage(null), 3000);
-    } catch (e) {
-      setSaveMessage(e instanceof Error ? e.message : 'Failed to end sale');
-      setTimeout(() => setSaveMessage(null), 5000);
-    }
-  };
 
   const saveProduct = async () => {
     if (!newProduct.name) return;
@@ -667,18 +622,31 @@ export default function AdminPage() {
               </p>
             </div>
             <div className="border-t border-white/10 pt-8">
-              <h3 className="font-display font-semibold mb-4">Sale / countdown</h3>
-              <p className="text-slate-400 text-sm mb-4">Set a sale name and how long it runs. The countdown appears live on every product with a sale price and in a popup for visitors.</p>
-              {settings.saleEndsAt && new Date(settings.saleEndsAt) > new Date() && (
-                <div className="mb-6 p-4 rounded-xl bg-solar-leaf/10 border border-solar-leaf/30">
-                  <p className="text-solar-leaf font-medium">Current sale: {settings.saleName || 'Sale'}</p>
-                  <p className="text-slate-400 text-sm mt-1">Ends at {new Date(settings.saleEndsAt).toLocaleString()}</p>
-                  <button type="button" onClick={endSale} className="mt-3 px-4 py-2 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 text-sm">
-                    End sale
+              <h3 className="font-display font-semibold mb-1">Sale Banner</h3>
+              <p className="text-slate-400 text-sm mb-6">Toggle the sale on or off. When active, a countdown banner appears at the top of every page.</p>
+              <div className="space-y-5">
+                {/* On/Off toggle */}
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const next = !settings.saleActive;
+                      setSettingsState((s) => ({ ...s, saleActive: next }));
+                      try {
+                        await authFetch('/api/admin/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ saleActive: next }) });
+                        setSaveMessage(next ? 'Sale banner turned on' : 'Sale banner turned off');
+                      } catch { setSaveMessage('Failed to update'); }
+                    }}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${settings.saleActive ? 'bg-solar-leaf' : 'bg-white/20'}`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${settings.saleActive ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
+                  <span className={`font-semibold text-sm ${settings.saleActive ? 'text-solar-leaf' : 'text-slate-400'}`}>
+                    {settings.saleActive ? 'Sale ON' : 'Sale OFF'}
+                  </span>
                 </div>
-              )}
-              <div className="space-y-4">
+
+                {/* Sale name */}
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Sale name</label>
                   <input
@@ -689,8 +657,10 @@ export default function AdminPage() {
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                   />
                 </div>
+
+                {/* End date/time */}
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Sale ends at (date & time)</label>
+                  <label className="block text-sm text-slate-400 mb-1">Sale ends at</label>
                   <DateTimePicker
                     value={settings.saleEndsAt || ''}
                     onChange={(iso) => setSettingsState((s) => ({ ...s, saleEndsAt: iso }))}
@@ -699,34 +669,10 @@ export default function AdminPage() {
                   />
                   <p className="text-slate-500 text-xs mt-1">Pick the date and time, then click Save inside the calendar.</p>
                 </div>
+
                 <button type="button" onClick={() => saveSaleSettings()} className="w-full sm:w-auto px-6 py-3 rounded-lg bg-solar-leaf hover:bg-solar-forest font-medium">
                   Save sale settings
                 </button>
-                <div className="border-t border-white/10 pt-6 mt-6">
-                  <p className="text-slate-400 text-sm mb-2">Or start a sale for a set length from now:</p>
-                  <div className="flex flex-wrap gap-4 items-end">
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        min={1}
-                        value={saleDuration.amount}
-                        onChange={(e) => setSaleDuration((d) => ({ ...d, amount: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
-                        className="w-24 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                      />
-                      <select
-                        value={saleDuration.unit}
-                        onChange={(e) => setSaleDuration((d) => ({ ...d, unit: e.target.value as 'hours' | 'days' }))}
-                        className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                      >
-                        <option value="hours">Hours</option>
-                        <option value="days">Days</option>
-                      </select>
-                    </div>
-                    <button type="button" onClick={startSale} className="px-6 py-2 rounded-lg glass hover:bg-white/10 border border-white/20">
-                      Start sale
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

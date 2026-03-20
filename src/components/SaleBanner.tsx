@@ -14,7 +14,7 @@ export function SaleBanner() {
       .then((data) => {
         const endsAt = (data.saleEndsAt || '').trim();
         const name = (data.saleName || '').trim();
-        if (endsAt && new Date(endsAt) > new Date()) {
+        if (data.saleActive && endsAt && new Date(endsAt) > new Date()) {
           setSale({ saleName: name || 'Sale', saleEndsAt: endsAt });
         }
       })
@@ -34,7 +34,7 @@ export function SaleBanner() {
           <span className="font-mono text-base font-bold tabular-nums opacity-90">
             <SaleCountdown endAt={sale.saleEndsAt} className="text-white" />
           </span>
-          <Link href="/products" className="underline font-semibold text-sm hover:no-underline whitespace-nowrap">
+          <Link href="/#kits" className="underline font-semibold text-sm hover:no-underline whitespace-nowrap">
             Shop now →
           </Link>
         </div>
