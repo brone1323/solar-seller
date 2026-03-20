@@ -23,7 +23,7 @@ interface SolarSizerProps {
 }
 
 export function SolarSizer({ products }: SolarSizerProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [province, setProvince] = useState('ON');
   const [monthlyBill, setMonthlyBill] = useState('');
   const [results, setResults] = useState<{ kwNeeded: number; annualKwh: number; recommendations: Product[] } | null>(null);
