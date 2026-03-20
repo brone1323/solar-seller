@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { appendActivity, type ActivityEvent, type AddToCartEvent, type PurchaseEvent } from '@/lib/activityStorage';
+import { appendActivity, type ActivityEvent, type AddToCartEvent, type AbandonedCartEvent, type PurchaseEvent } from '@/lib/activityStorage';
 
 function isValidAddToCart(body: unknown): body is AddToCartEvent {
   return (
@@ -11,6 +11,13 @@ function isValidAddToCart(body: unknown): body is AddToCartEvent {
     typeof (body as AddToCartEvent).quantity === 'number' &&
     (body as AddToCartEvent).quantity >= 1
   );
+}
+
+function isValidAbandonedCart(body: unknown): body is AbandonedCartEvent {
+  const b = body as AbandonedCartEvent;
+  if (typeof body !== 'object' || body === null || b.type !== 'abandoned_cart') return false;
+  if (!Array.isArray(b.items) || b.items.length === 0) return false;
+  return typeof b.subtotalCents === 'number';
 }
 
 function isValidPurchase(body: unknown): body is PurchaseEvent {
@@ -44,6 +51,13 @@ export async function POST(request: NextRequest) {
         productName: body.productName,
         quantity: body.quantity,
       };
+    } else if (isValidAbandonedCart(body)) {
+      event = {
+        type: 'abandoned_cart',
+        at,
+        items: (body as AbandonedCartEvent).items,
+        subtotalCents: (body as AbandonedCartEvent).subtotalCents,
+      };
     } else if (isValidPurchase(body)) {
       event = {
         type: 'purchase',
@@ -63,7 +77,7 @@ export async function POST(request: NextRequest) {
         paypalOrderId: typeof body.paypalOrderId === 'string' ? body.paypalOrderId : undefined,
       };
     } else {
-      return NextResponse.json({ error: 'Invalid event: need type "add_to_cart" or "purchase" with required fields' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid event: need type "add_to_cart", "abandoned_cart", or "purchase" with required fields' }, { status: 400 });
     }
 
     await appendActivity(event);

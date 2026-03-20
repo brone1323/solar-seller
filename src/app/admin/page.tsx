@@ -72,8 +72,13 @@ export default function AdminPage() {
   const [gridMode, setGridMode] = useState<GridMode>('off_grid');
   const [batteryChem, setBatteryChem] = useState<BatteryChem>('lead_acid');
 
-  type ActivityEvent = { type: 'add_to_cart'; at: string; productId: string; productName: string; quantity: number } | { type: 'purchase'; at: string; email?: string; firstName?: string; lastName?: string; address?: string; city?: string; province?: string; postalCode?: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number; paypalOrderId?: string } | { type: 'contact'; at: string; name: string; email: string; message: string };
+  type ActivityEvent =
+    | { type: 'add_to_cart'; at: string; productId: string; productName: string; quantity: number }
+    | { type: 'purchase'; at: string; email?: string; firstName?: string; lastName?: string; address?: string; city?: string; province?: string; postalCode?: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number; paypalOrderId?: string }
+    | { type: 'abandoned_cart'; at: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number }
+    | { type: 'contact'; at: string; name: string; email: string; message: string };
   const [activityList, setActivityList] = useState<ActivityEvent[]>([]);
+  const [activityFilter, setActivityFilter] = useState<'all' | 'purchase' | 'add_to_cart' | 'abandoned_cart' | 'contact'>('all');
   const [activityLoading, setActivityLoading] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(false);
 
@@ -720,81 +725,129 @@ export default function AdminPage() {
       ) : tab === 'activity' ? (
         activityLoading ? (
           <div className="text-slate-400">Loading activity...</div>
-        ) : (
-          <div className="glass rounded-2xl p-8 max-w-5xl">
-            <h2 className="font-display text-xl font-semibold mb-6">Activity</h2>
-            <p className="text-slate-400 text-sm mb-6">Add-to-cart and completed purchases. When customers enter email, name, or address at checkout, that is recorded here.</p>
-            {activityList.length === 0 ? (
-              <p className="text-slate-400 py-8">No activity yet.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-white/10 text-slate-400">
-                      <th className="pb-3 pr-4">Type</th>
-                      <th className="pb-3 pr-4">Date</th>
-                      <th className="pb-3 pr-4">Details</th>
-                      <th className="pb-3">Contact / Address</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activityList.map((evt, i) => (
-                      <tr key={i} className="border-b border-white/5">
-                        <td className="py-3 pr-4">
-                          <span className={evt.type === 'purchase' ? 'text-solar-leaf font-medium' : evt.type === 'contact' ? 'text-solar-sky font-medium' : 'text-slate-300'}>
-                            {evt.type === 'purchase' ? 'Purchase' : evt.type === 'contact' ? 'Contact' : 'Add to cart'}
-                          </span>
-                        </td>
-                        <td className="py-3 pr-4 text-slate-400">{new Date(evt.at).toLocaleString()}</td>
-                        <td className="py-3 pr-4">
-                          {evt.type === 'add_to_cart' && (
-                            <span>{evt.productName} × {evt.quantity}</span>
-                          )}
-                          {evt.type === 'purchase' && (
-                            <div>
-                              {evt.items.map((it, j) => (
-                                <div key={j}>{it.name} × {it.quantity} — ${(it.priceCents * it.quantity / 100).toFixed(2)}</div>
-                              ))}
-                              <div className="mt-1 font-medium text-solar-leaf">Total ${(evt.totalCents / 100).toFixed(2)}</div>
-                            </div>
-                          )}
-                          {evt.type === 'contact' && (
-                            <p className="text-slate-300 whitespace-pre-wrap">{evt.message}</p>
-                          )}
-                        </td>
-                        <td className="py-3">
-                          {evt.type === 'add_to_cart' && <span className="text-slate-500">—</span>}
-                          {evt.type === 'contact' && (
-                            <div className="text-slate-300">
-                              {evt.email !== '—' ? (
-                                <div>{evt.name !== '—' && `${evt.name} — `}<a href={`mailto:${evt.email}`} className="text-solar-sky hover:underline">{evt.email}</a></div>
-                              ) : (
-                                <div>{evt.name !== '—' ? evt.name : 'Anonymous'}</div>
-                              )}
-                            </div>
-                          )}
-                          {evt.type === 'purchase' && (
-                            <div className="text-slate-300">
-                              {(evt.email || evt.firstName || evt.lastName) && (
-                                <div>{[evt.firstName, evt.lastName].filter(Boolean).join(' ')} {evt.email && `<${evt.email}>`}</div>
-                              )}
-                              {(evt.address || evt.city) && (
-                                <div className="text-slate-400 text-xs mt-1">
-                                  {[evt.address, evt.city, evt.province, evt.postalCode].filter(Boolean).join(', ')}
-                                </div>
-                              )}
-                              {!evt.email && !evt.firstName && !evt.lastName && !evt.address && <span className="text-slate-500">—</span>}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        ) : (() => {
+          const purchases = activityList.filter(e => e.type === 'purchase') as { type: 'purchase'; at: string; email?: string; firstName?: string; lastName?: string; address?: string; city?: string; province?: string; postalCode?: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number; paypalOrderId?: string }[];
+          const abandoned = activityList.filter(e => e.type === 'abandoned_cart') as { type: 'abandoned_cart'; at: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number }[];
+          const cartAdds = activityList.filter(e => e.type === 'add_to_cart');
+          const contacts = activityList.filter(e => e.type === 'contact');
+          const totalRevenue = purchases.reduce((s, e) => s + e.totalCents, 0);
+          const abandonedValue = abandoned.reduce((s, e) => s + e.subtotalCents, 0);
+          const filtered = activityFilter === 'all' ? activityList : activityList.filter(e => e.type === activityFilter);
+
+          return (
+            <div className="max-w-5xl space-y-6">
+              {/* Stats row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[
+                  { label: 'Total Revenue', value: `$${(totalRevenue / 100).toLocaleString('en-CA', { minimumFractionDigits: 2 })}`, color: 'text-solar-leaf', bg: 'bg-solar-leaf/10 border-solar-leaf/20' },
+                  { label: 'Purchases', value: purchases.length, color: 'text-solar-leaf', bg: 'bg-solar-leaf/10 border-solar-leaf/20' },
+                  { label: 'Abandoned Carts', value: `${abandoned.length} (${abandonedValue > 0 ? '$' + (abandonedValue / 100).toFixed(0) + ' lost' : '$0'})`, color: 'text-amber-400', bg: 'bg-amber-400/10 border-amber-400/20' },
+                  { label: 'Add to Carts', value: cartAdds.length, color: 'text-solar-sky', bg: 'bg-solar-sky/10 border-solar-sky/20' },
+                ].map(s => (
+                  <div key={s.label} className={`glass rounded-xl p-4 border ${s.bg}`}>
+                    <div className="text-slate-400 text-xs mb-1">{s.label}</div>
+                    <div className={`font-display text-xl font-bold ${s.color}`}>{s.value}</div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        )
+
+              {/* Filter tabs */}
+              <div className="flex flex-wrap gap-2">
+                {([
+                  ['all', 'All', activityList.length],
+                  ['purchase', 'Purchases', purchases.length],
+                  ['abandoned_cart', 'Abandoned', abandoned.length],
+                  ['add_to_cart', 'Add to Cart', cartAdds.length],
+                  ['contact', 'Contact', contacts.length],
+                ] as [typeof activityFilter, string, number][]).map(([key, label, count]) => (
+                  <button
+                    key={key}
+                    onClick={() => setActivityFilter(key)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${activityFilter === key ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10 text-slate-300'}`}
+                  >
+                    {label} <span className="opacity-60 ml-1">{count}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Events list */}
+              {filtered.length === 0 ? (
+                <p className="text-slate-400 py-8">No events yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {filtered.map((evt, i) => (
+                    <div key={i} className={`glass rounded-xl p-4 border-l-4 ${
+                      evt.type === 'purchase' ? 'border-l-solar-leaf' :
+                      evt.type === 'abandoned_cart' ? 'border-l-amber-400' :
+                      evt.type === 'contact' ? 'border-l-solar-sky' :
+                      'border-l-white/20'
+                    }`}>
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                            evt.type === 'purchase' ? 'bg-solar-leaf/20 text-solar-leaf' :
+                            evt.type === 'abandoned_cart' ? 'bg-amber-400/20 text-amber-400' :
+                            evt.type === 'contact' ? 'bg-solar-sky/20 text-solar-sky' :
+                            'bg-white/10 text-slate-300'
+                          }`}>
+                            {evt.type === 'purchase' ? '✓ Purchase' :
+                             evt.type === 'abandoned_cart' ? '⚠ Abandoned' :
+                             evt.type === 'contact' ? '✉ Contact' :
+                             '+ Add to Cart'}
+                          </span>
+                          <span className="text-slate-400 text-sm">{new Date(evt.at).toLocaleString()}</span>
+                        </div>
+                        {evt.type === 'purchase' && (
+                          <span className="text-solar-leaf font-bold">${(evt.totalCents / 100).toFixed(2)}</span>
+                        )}
+                        {evt.type === 'abandoned_cart' && (
+                          <span className="text-amber-400 font-bold">${(evt.subtotalCents / 100).toFixed(2)} lost</span>
+                        )}
+                      </div>
+
+                      <div className="mt-3 text-sm">
+                        {evt.type === 'add_to_cart' && (
+                          <p className="text-slate-200">{evt.productName} <span className="text-slate-500">× {evt.quantity}</span></p>
+                        )}
+                        {(evt.type === 'purchase' || evt.type === 'abandoned_cart') && (
+                          <div className="space-y-1">
+                            {evt.items.map((it, j) => (
+                              <div key={j} className="flex justify-between text-slate-300">
+                                <span>{it.name} × {it.quantity}</span>
+                                <span className="text-slate-400">${(it.priceCents * it.quantity / 100).toFixed(2)}</span>
+                              </div>
+                            ))}
+                            {evt.type === 'purchase' && (
+                              <div className="pt-2 mt-2 border-t border-white/10 space-y-0.5 text-slate-400 text-xs">
+                                <div className="flex justify-between"><span>Subtotal</span><span>${(evt.subtotalCents/100).toFixed(2)}</span></div>
+                                <div className="flex justify-between"><span>Shipping</span><span>${(evt.shippingCents/100).toFixed(2)}</span></div>
+                                <div className="flex justify-between"><span>GST</span><span>${(evt.gstCents/100).toFixed(2)}</span></div>
+                                <div className="flex justify-between text-white font-semibold text-sm pt-1"><span>Total</span><span>${(evt.totalCents/100).toFixed(2)}</span></div>
+                              </div>
+                            )}
+                            {evt.type === 'purchase' && (evt.email || evt.firstName) && (
+                              <div className="pt-2 mt-2 border-t border-white/10 text-slate-400 text-xs space-y-0.5">
+                                {(evt.firstName || evt.lastName) && <div>{[evt.firstName, evt.lastName].filter(Boolean).join(' ')}</div>}
+                                {evt.email && <div><a href={`mailto:${evt.email}`} className="text-solar-sky hover:underline">{evt.email}</a></div>}
+                                {evt.address && <div>{[evt.address, evt.city, evt.province, evt.postalCode].filter(Boolean).join(', ')}</div>}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {evt.type === 'contact' && (
+                          <div>
+                            <div className="text-slate-300 mb-1">{evt.name} — <a href={`mailto:${evt.email}`} className="text-solar-sky hover:underline">{evt.email}</a></div>
+                            <p className="text-slate-400 whitespace-pre-wrap">{evt.message}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()
       ) : tab === 'questions' ? (
         questionsLoading ? (
           <div className="text-slate-400">Loading questions...</div>

@@ -49,6 +49,7 @@ export default function CheckoutPage() {
         }),
       });
     } catch (_) {}
+    sessionStorage.setItem('solar-diy-purchased', '1');
     setComplete(true);
     clearCart();
   };

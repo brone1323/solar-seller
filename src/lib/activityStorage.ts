@@ -30,6 +30,13 @@ export type PurchaseEvent = {
   paypalOrderId?: string;
 };
 
+export type AbandonedCartEvent = {
+  type: 'abandoned_cart';
+  at: string;
+  items: { productId: string; name: string; quantity: number; priceCents: number }[];
+  subtotalCents: number;
+};
+
 export type ContactEvent = {
   type: 'contact';
   at: string;
@@ -38,7 +45,7 @@ export type ContactEvent = {
   message: string;
 };
 
-export type ActivityEvent = AddToCartEvent | PurchaseEvent | ContactEvent;
+export type ActivityEvent = AddToCartEvent | PurchaseEvent | AbandonedCartEvent | ContactEvent;
 
 async function readEvents(): Promise<ActivityEvent[]> {
   const redisUrl = process.env.UPSTASH_REDIS_REST_URL;

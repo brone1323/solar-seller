@@ -86,6 +86,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => setItems([]);
 
+  // Abandoned cart — fire a beacon when the user leaves with items in cart
+  // A sessionStorage flag is set on purchase to avoid false positives
+  useEffect(() => {
+    if (!loaded) return;
+    const handleUnload = () => {
+      if (items.length === 0) return;
+      if (sessionStorage.getItem('solar-diy-purchased') === '1') return;
+      const payload = JSON.stringify({
+        type: 'abandoned_cart',
+        at: new Date().toISOString(),
+        items: items.map((i) => ({
+          productId: i.product.id,
+          name: i.product.name,
+          quantity: i.quantity,
+          priceCents: i.product.price,
+        })),
+        subtotalCents: items.reduce((s, i) => s + i.product.price * i.quantity, 0),
+      });
+      navigator.sendBeacon('/api/activity', new Blob([payload], { type: 'application/json' }));
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
+  }, [items, loaded]);
+
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
 
