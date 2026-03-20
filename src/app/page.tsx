@@ -48,11 +48,10 @@ export default async function HomePage() {
   const allProducts = await readProducts();
 
   const byPrice = (a: typeof allProducts[0], b: typeof allProducts[0]) => a.price - b.price;
-  const onGrid = allProducts.filter((p) => p.category === 'On Grid').sort(byPrice);
-  const offGridLeadAcid = allProducts.filter((p) => p.category === 'Off Grid - Lead Acid').sort(byPrice);
-  const offGridLithium = allProducts.filter((p) => p.category === 'Off Grid - Lithium').sort(byPrice);
-  const known = new Set(['On Grid', 'Off Grid - Lead Acid', 'Off Grid - Lithium']);
-  const other = allProducts.filter((p) => !known.has(p.category)).sort(byPrice);
+  const onGrid = allProducts.filter((p) => p.specifications?.['Grid Type'] === 'on_grid').sort(byPrice);
+  const offGridLeadAcid = allProducts.filter((p) => p.specifications?.['Grid Type'] === 'off_grid' && p.specifications?.['Battery Type'] === 'lead_acid').sort(byPrice);
+  const offGridLithium = allProducts.filter((p) => p.specifications?.['Grid Type'] === 'off_grid' && p.specifications?.['Battery Type'] === 'lithium').sort(byPrice);
+  const other = allProducts.filter((p) => !p.specifications?.['Grid Type']).sort(byPrice);
   const allKits = [...onGrid, ...offGridLeadAcid, ...offGridLithium, ...other];
 
   return (
