@@ -1,9 +1,7 @@
 import Link from 'next/link';
-import { ArrowRight, Zap, Shield, Wrench, Mail, Star, Sun, Battery, Cpu } from 'lucide-react';
+import { ArrowRight, Zap, Shield, Wrench, Mail, Star, Sun, Battery, Cpu, BookOpen, HeadphonesIcon, FileCheck } from 'lucide-react';
 import { readProducts } from '@/lib/productStorage';
-import { HomeGridSelector } from '@/components/HomeGridSelector';
-import { FeaturedKitsGrid } from '@/components/FeaturedKitsGrid';
-import { ProductsGridLink } from '@/components/ProductsGridLink';
+import { ProductCard } from '@/components/ProductCard';
 import { SolarSizer } from '@/components/SolarSizer';
 
 export const dynamic = 'force-dynamic';
@@ -18,7 +16,6 @@ const stats = [
 const features = [
   {
     icon: Zap,
-    color: 'sky',
     iconBg: 'bg-solar-sky/20',
     iconColor: 'text-solar-sky',
     title: 'Premium Equipment',
@@ -26,7 +23,6 @@ const features = [
   },
   {
     icon: Wrench,
-    color: 'leaf',
     iconBg: 'bg-solar-leaf/20',
     iconColor: 'text-solar-leaf',
     title: 'Full DIY Support',
@@ -34,7 +30,6 @@ const features = [
   },
   {
     icon: Shield,
-    color: 'ocean',
     iconBg: 'bg-solar-ocean/20',
     iconColor: 'text-solar-ocean',
     title: 'Complete Packages',
@@ -50,23 +45,25 @@ const trustItems = [
 ];
 
 export default async function HomePage() {
-  const products = await readProducts();
-  const featuredProducts = products.filter((p) => p.featured);
+  const allProducts = await readProducts();
+
+  const byPrice = (a: typeof allProducts[0], b: typeof allProducts[0]) => a.price - b.price;
+  const onGrid = allProducts.filter((p) => p.category === 'On Grid').sort(byPrice);
+  const offGridLeadAcid = allProducts.filter((p) => p.category === 'Off Grid - Lead Acid').sort(byPrice);
+  const offGridLithium = allProducts.filter((p) => p.category === 'Off Grid - Lithium').sort(byPrice);
+  const allKits = [...onGrid, ...offGridLeadAcid, ...offGridLithium];
 
   return (
     <div>
       {/* ── HERO ──────────────────────────────────── */}
       <section className="relative overflow-hidden min-h-[88vh] flex items-center">
-        {/* Background layers */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#060d1f] via-[#082240]/80 to-[#041a0f]/70" />
         <div className="absolute inset-0 hero-grid-pattern opacity-60" />
 
-        {/* Floating orbs */}
         <div className="orb orb-sky w-[600px] h-[600px] top-[-120px] left-[-200px] animate-orb-float opacity-70" />
         <div className="orb orb-leaf w-[500px] h-[500px] bottom-[-100px] right-[-150px] animate-orb-float2 opacity-60" />
         <div className="orb orb-deep w-[400px] h-[400px] top-[40%] left-[40%] opacity-40" />
 
-        {/* Sun ring decoration */}
         <div className="absolute top-12 right-12 hidden lg:block opacity-10 animate-spin-slow">
           <svg width="280" height="280" viewBox="0 0 280 280" fill="none">
             <circle cx="140" cy="140" r="138" stroke="url(#sunGrad)" strokeWidth="1.5" strokeDasharray="8 6" />
@@ -83,7 +80,6 @@ export default async function HomePage() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 w-full">
           <div className="max-w-4xl">
-            {/* Label */}
             <div className="inline-flex items-center gap-2 mb-6 animate-fade-up">
               <span className="badge-sky">
                 <span className="w-1.5 h-1.5 rounded-full bg-solar-sky animate-pulse-glow" />
@@ -91,7 +87,6 @@ export default async function HomePage() {
               </span>
             </div>
 
-            {/* Headline */}
             <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-6 leading-[1.05] tracking-tight animate-fade-up delay-100">
               Go Solar.{' '}
               <br className="hidden sm:block" />
@@ -104,9 +99,12 @@ export default async function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-300">
-              <ProductsGridLink className="btn-solar inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl font-bold text-lg text-white glow-btn">
+              <a
+                href="#kits"
+                className="btn-solar inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl font-bold text-lg text-white glow-btn"
+              >
                 Shop Kits <ArrowRight className="w-5 h-5" />
-              </ProductsGridLink>
+              </a>
               <Link
                 href="/why-solar-diy"
                 className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl glass border border-white/15 font-semibold text-lg hover:bg-white/10 hover:border-white/25 transition-all duration-200"
@@ -115,7 +113,6 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            {/* Social proof strip */}
             <div className="mt-12 flex flex-wrap gap-6 animate-fade-up delay-400">
               {stats.map((s) => (
                 <div key={s.label} className="flex flex-col">
@@ -128,28 +125,76 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── GRID SELECTOR ────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
-        <HomeGridSelector />
-      </div>
-
-      {/* ── FEATURED PRODUCTS ─────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex justify-between items-end mb-10">
-          <div>
-            <p className="section-label mb-2">Top picks</p>
-            <h2 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">Featured Equipment</h2>
-          </div>
-          <ProductsGridLink className="text-solar-sky hover:text-solar-leaf font-semibold transition-colors text-sm flex items-center gap-1.5">
-            View all <ArrowRight className="w-4 h-4" />
-          </ProductsGridLink>
+      {/* ── VALUE PROPS ───────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { icon: <Wrench className="w-5 h-5 text-solar-amber" />, title: 'Racking Included', desc: 'Every kit includes all mounting hardware and racking — nothing extra to source or buy.' },
+            { icon: <FileCheck className="w-5 h-5 text-solar-leaf" />, title: 'Custom Install Manual', desc: 'Every kit ships with a project-specific installation manual drawn up for your exact system.' },
+            { icon: <HeadphonesIcon className="w-5 h-5 text-solar-sky" />, title: 'Technical Expert On-Call', desc: 'Book a session with a certified solar technician for guidance at any point in your project.' },
+            { icon: <BookOpen className="w-5 h-5 text-solar-amber" />, title: 'Step-by-Step Resources', desc: 'Spec sheets, wiring diagrams, and curated video guides are included with every order.' },
+          ].map(({ icon, title, desc }) => (
+            <div key={title} className="glass rounded-2xl border border-white/[0.07] p-5 flex gap-4 items-start">
+              <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                {icon}
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm mb-1">{title}</p>
+                <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
-        <FeaturedKitsGrid featuredProducts={featuredProducts} />
       </section>
 
       {/* ── SOLAR SIZER ───────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
-        <SolarSizer products={products} />
+        <SolarSizer products={allKits} />
+      </section>
+
+      {/* ── ALL KITS ──────────────────────────────── */}
+      <section id="kits" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {allKits.length === 0 ? (
+          <div className="text-center py-24 glass rounded-3xl border border-white/10">
+            <p className="text-slate-400 text-lg font-medium mb-2">No products yet</p>
+            <p className="text-slate-600 text-sm">Add some products in the Admin panel to get started.</p>
+          </div>
+        ) : (
+          <div className="space-y-14">
+            {onGrid.length > 0 && (
+              <div>
+                <h2 className="font-display text-2xl font-bold tracking-tight mb-6">On Grid</h2>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {onGrid.map((p) => <ProductCard key={p.id} product={p} />)}
+                </div>
+              </div>
+            )}
+
+            {(offGridLeadAcid.length > 0 || offGridLithium.length > 0) && (
+              <div>
+                <h2 className="font-display text-2xl font-bold tracking-tight mb-8">Off Grid</h2>
+                <div className="space-y-10">
+                  {offGridLeadAcid.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-300 mb-4">Lead Acid</h3>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {offGridLeadAcid.map((p) => <ProductCard key={p.id} product={p} />)}
+                      </div>
+                    </div>
+                  )}
+                  {offGridLithium.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-300 mb-4">Lithium</h3>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {offGridLithium.map((p) => <ProductCard key={p.id} product={p} />)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* ── WHY CHOOSE US ─────────────────────────── */}
@@ -166,11 +211,7 @@ export default async function HomePage() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {features.map((f, i) => (
-            <div
-              key={f.title}
-              className="glass-card p-8 flex flex-col gap-4"
-              style={{ animationDelay: `${i * 0.1}s` }}
-            >
+            <div key={f.title} className="glass-card p-8 flex flex-col gap-4" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className={`w-14 h-14 rounded-2xl ${f.iconBg} flex items-center justify-center`}>
                 <f.icon className={`w-7 h-7 ${f.iconColor}`} />
               </div>
@@ -205,7 +246,6 @@ export default async function HomePage() {
       {/* ── CTA BANNER ────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="relative overflow-hidden glass-strong rounded-3xl p-12 lg:p-16 text-center border-solar-sky/20 glow-solar">
-          {/* Background orbs inside CTA */}
           <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-solar-sky/10 blur-3xl pointer-events-none" />
           <div className="absolute -bottom-16 -right-16 w-64 h-64 rounded-full bg-solar-leaf/10 blur-3xl pointer-events-none" />
 
@@ -220,9 +260,12 @@ export default async function HomePage() {
               priced transparently, and backed by real support.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <ProductsGridLink className="btn-solar inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl font-bold text-lg text-white glow-btn">
+              <a
+                href="#kits"
+                className="btn-solar inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl font-bold text-lg text-white glow-btn"
+              >
                 Browse All Kits <ArrowRight className="w-5 h-5" />
-              </ProductsGridLink>
+              </a>
               <a
                 href="mailto:info@solar-diy.ca"
                 className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl glass border border-white/15 font-semibold text-lg hover:bg-white/10 transition-all duration-200"
