@@ -52,7 +52,7 @@ export default async function HomePage() {
   const offGridLeadAcid = allProducts.filter((p) => p.specifications?.['Grid Type'] === 'off_grid' && p.specifications?.['Battery Type'] === 'lead_acid').sort(byPrice);
   const offGridLithium = allProducts.filter((p) => p.specifications?.['Grid Type'] === 'off_grid' && p.specifications?.['Battery Type'] === 'lithium').sort(byPrice);
   const other = allProducts.filter((p) => !p.specifications?.['Grid Type']).sort(byPrice);
-  const allKits = [...onGrid, ...offGridLeadAcid, ...offGridLithium, ...other];
+  const allKits = [...offGridLeadAcid, ...offGridLithium, ...onGrid, ...other];
 
   return (
     <div>
@@ -162,15 +162,6 @@ export default async function HomePage() {
           </div>
         ) : (
           <div className="space-y-14">
-            {onGrid.length > 0 && (
-              <div>
-                <h2 className="font-display text-2xl font-bold tracking-tight mb-6">On Grid</h2>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {onGrid.map((p) => <ProductCard key={p.id} product={p} />)}
-                </div>
-              </div>
-            )}
-
             {(offGridLeadAcid.length > 0 || offGridLithium.length > 0) && (
               <div>
                 <h2 className="font-display text-2xl font-bold tracking-tight mb-8">Off Grid</h2>
@@ -191,6 +182,15 @@ export default async function HomePage() {
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {onGrid.length > 0 && (
+              <div>
+                <h2 className="font-display text-2xl font-bold tracking-tight mb-6">On Grid</h2>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {onGrid.map((p) => <ProductCard key={p.id} product={p} />)}
                 </div>
               </div>
             )}
