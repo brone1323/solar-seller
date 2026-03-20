@@ -7,7 +7,12 @@ export const dynamic = 'force-dynamic';
 
 export default async function ProductsPage() {
   const allProducts = await readProducts();
-  const products = [...allProducts].sort((a, b) => a.price - b.price);
+
+  const byPrice = (a: typeof allProducts[0], b: typeof allProducts[0]) => a.price - b.price;
+  const onGrid = allProducts.filter((p) => p.category === 'On Grid').sort(byPrice);
+  const offGridLeadAcid = allProducts.filter((p) => p.category === 'Off Grid - Lead Acid').sort(byPrice);
+  const offGridLithium = allProducts.filter((p) => p.category === 'Off Grid - Lithium').sort(byPrice);
+  const products = [...onGrid, ...offGridLeadAcid, ...offGridLithium];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -79,10 +84,47 @@ export default async function ProductsPage() {
           <p className="text-slate-600 text-sm">Add some products in the Admin panel to get started.</p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+        <div className="space-y-14">
+          {/* On Grid */}
+          {onGrid.length > 0 && (
+            <div>
+              <h2 className="font-display text-2xl font-bold tracking-tight mb-6">On Grid</h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {onGrid.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Off Grid */}
+          {(offGridLeadAcid.length > 0 || offGridLithium.length > 0) && (
+            <div>
+              <h2 className="font-display text-2xl font-bold tracking-tight mb-8">Off Grid</h2>
+              <div className="space-y-10">
+                {offGridLeadAcid.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-300 mb-4">Lead Acid</h3>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {offGridLeadAcid.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {offGridLithium.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-300 mb-4">Lithium</h3>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {offGridLithium.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
