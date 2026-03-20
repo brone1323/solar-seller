@@ -27,6 +27,8 @@ export function DateTimePicker({ value, onChange, onSave, placeholder = 'Pick da
   const [minute, setMinute] = useState(value ? initial.getMinutes() : 0);
   const [amPm, setAmPm] = useState<'AM' | 'PM'>(value ? (initial.getHours() >= 12 ? 'PM' : 'AM') : 'AM');
   const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [openUpward, setOpenUpward] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -41,6 +43,10 @@ export function DateTimePicker({ value, onChange, onSave, placeholder = 'Pick da
 
   useEffect(() => {
     if (!open) return;
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setOpenUpward(rect.bottom + 380 > window.innerHeight);
+    }
     const handle = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) setOpen(false);
     };
@@ -77,6 +83,7 @@ export function DateTimePicker({ value, onChange, onSave, placeholder = 'Pick da
   return (
     <div className="relative" ref={panelRef}>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={`w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-left text-white flex items-center justify-between ${className}`}
@@ -85,7 +92,7 @@ export function DateTimePicker({ value, onChange, onSave, placeholder = 'Pick da
         <span className="text-slate-400">▼</span>
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-2 z-50 rounded-xl border border-white/20 bg-solar-dark shadow-xl p-4 min-w-[320px]">
+        <div className={`absolute left-0 z-50 rounded-xl border border-white/20 bg-solar-dark shadow-xl p-4 min-w-[320px] ${openUpward ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
           <div className="flex gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
