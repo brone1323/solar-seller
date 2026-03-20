@@ -12,6 +12,8 @@ export interface AppSettings {
   saleName?: string;
   /** Sale countdown end date/time, ISO string */
   saleEndsAt?: string;
+  /** Discount percentage applied to all products during sale (0-100) */
+  saleDiscount?: number;
 }
 
 const defaults: AppSettings = {
@@ -19,6 +21,7 @@ const defaults: AppSettings = {
   saleActive: false,
   saleName: '',
   saleEndsAt: '',
+  saleDiscount: 0,
 };
 
 export async function getSettings(): Promise<AppSettings> {
@@ -35,11 +38,11 @@ export async function getSettings(): Promise<AppSettings> {
       const data = await redis.get(REDIS_KEY);
       if (data && typeof data === 'object') {
         const d = data as AppSettings;
-        return { ...defaults, shippingDisabled: Boolean(d.shippingDisabled), saleActive: Boolean(d.saleActive), saleName: d.saleName ?? '', saleEndsAt: d.saleEndsAt ?? '' };
+        return { ...defaults, shippingDisabled: Boolean(d.shippingDisabled), saleActive: Boolean(d.saleActive), saleName: d.saleName ?? '', saleEndsAt: d.saleEndsAt ?? '', saleDiscount: Number(d.saleDiscount ?? 0) };
       }
       if (typeof data === 'string') {
         const parsed = JSON.parse(data) as AppSettings;
-        return { ...defaults, ...parsed, saleActive: Boolean(parsed?.saleActive), saleName: parsed?.saleName ?? '', saleEndsAt: parsed?.saleEndsAt ?? '' };
+        return { ...defaults, ...parsed, saleActive: Boolean(parsed?.saleActive), saleName: parsed?.saleName ?? '', saleEndsAt: parsed?.saleEndsAt ?? '', saleDiscount: Number(parsed?.saleDiscount ?? 0) };
       }
     } catch (e) {
       console.error('Redis settings read error:', e);

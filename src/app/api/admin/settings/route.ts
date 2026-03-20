@@ -16,11 +16,12 @@ export async function PATCH(request: NextRequest) {
   }
   try {
     const body = await request.json().catch(() => ({}));
-    const updates: { shippingDisabled?: boolean; saleActive?: boolean; saleName?: string; saleEndsAt?: string } = {};
+    const updates: { shippingDisabled?: boolean; saleActive?: boolean; saleName?: string; saleEndsAt?: string; saleDiscount?: number } = {};
     if (typeof body.shippingDisabled === 'boolean') updates.shippingDisabled = body.shippingDisabled;
     if (typeof body.saleActive === 'boolean') updates.saleActive = body.saleActive;
     if (typeof body.saleName === 'string') updates.saleName = body.saleName.trim() || '';
     if (typeof body.saleEndsAt === 'string') updates.saleEndsAt = body.saleEndsAt.trim() || '';
+    if (typeof body.saleDiscount === 'number') updates.saleDiscount = Math.min(100, Math.max(0, body.saleDiscount));
     const settings = await setSettings(updates);
     return NextResponse.json(settings);
   } catch (e) {

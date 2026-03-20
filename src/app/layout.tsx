@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
+import { SaleProvider } from '@/context/SaleContext';
 import { SaleBanner } from '@/components/SaleBanner';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -25,12 +26,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
       <body className="font-body bg-solar-dark text-white antialiased min-h-screen flex flex-col">
+        <SaleProvider>
         <CartProvider>
           <SaleBanner />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
         </CartProvider>
+        </SaleProvider>
         <SalePopup />
         <Analytics />
         <SpeedInsights />

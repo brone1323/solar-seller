@@ -10,5 +10,6 @@ export async function GET() {
     saleActive: Boolean(settings.saleActive),
     saleName: settings.saleName || '',
     saleEndsAt: settings.saleEndsAt || '',
+    saleDiscount: Number(settings.saleDiscount ?? 0),
   });
 }

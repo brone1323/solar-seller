@@ -61,7 +61,7 @@ export default function AdminPage() {
   const [answerDraft, setAnswerDraft] = useState<Record<string, string>>({});
   const [newQuestion, setNewQuestion] = useState({ productSlug: '', author: 'Guest', body: '' });
 
-  const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleActive: boolean; saleName: string; saleEndsAt: string }>({ shippingDisabled: false, saleActive: false, saleName: '', saleEndsAt: '' });
+  const [settings, setSettingsState] = useState<{ shippingDisabled: boolean; saleActive: boolean; saleName: string; saleEndsAt: string; saleDiscount: number }>({ shippingDisabled: false, saleActive: false, saleName: '', saleEndsAt: '', saleDiscount: 0 });
 
   type GridMode = 'off_grid' | 'on_grid';
   type BatteryChem = 'lead_acid' | 'lithium';
@@ -158,8 +158,8 @@ export default function AdminPage() {
     if (authenticated) {
       authFetch('/api/admin/settings')
         .then((r) => r.json())
-        .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled), saleActive: Boolean(data?.saleActive), saleName: data?.saleName ?? '', saleEndsAt: data?.saleEndsAt ?? '' }))
-        .catch(() => setSettingsState({ shippingDisabled: false, saleActive: false, saleName: '', saleEndsAt: '' }));
+        .then((data) => setSettingsState({ shippingDisabled: Boolean(data?.shippingDisabled), saleActive: Boolean(data?.saleActive), saleName: data?.saleName ?? '', saleEndsAt: data?.saleEndsAt ?? '', saleDiscount: Number(data?.saleDiscount ?? 0) }))
+        .catch(() => setSettingsState({ shippingDisabled: false, saleActive: false, saleName: '', saleEndsAt: '', saleDiscount: 0 }));
     }
   }, [authenticated]);
 
@@ -199,7 +199,7 @@ export default function AdminPage() {
       const res = await authFetch('/api/admin/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ saleActive: settings.saleActive, saleName: name, saleEndsAt: endsAt }),
+        body: JSON.stringify({ saleActive: settings.saleActive, saleName: name, saleEndsAt: endsAt, saleDiscount: settings.saleDiscount }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Failed to save');
@@ -656,6 +656,23 @@ export default function AdminPage() {
                     placeholder="e.g. Summer Solar Sale"
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                   />
+                </div>
+
+                {/* Discount % */}
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Discount % (applied to all products)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={settings.saleDiscount}
+                      onChange={(e) => setSettingsState((s) => ({ ...s, saleDiscount: Math.min(100, Math.max(0, Number(e.target.value) || 0)) }))}
+                      className="w-24 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    />
+                    <span className="text-slate-400">%</span>
+                    {settings.saleDiscount > 0 && <span className="text-slate-500 text-sm">All prices show {settings.saleDiscount}% off when sale is active</span>}
+                  </div>
                 </div>
 
                 {/* End date/time */}

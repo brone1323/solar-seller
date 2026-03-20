@@ -6,6 +6,7 @@ import { ShoppingCart, Check } from 'lucide-react';
 import { ShareButton } from './ShareButton';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
+import { useSale } from '@/context/SaleContext';
 import { useState } from 'react';
 
 interface ProductCardProps {
@@ -25,13 +26,21 @@ function savingsPercent(regular: number, sale: number) {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { saleActive, saleDiscount } = useSale();
   const imgs = product.images?.filter(Boolean) || [];
   const [imgIndex, setImgIndex] = useState(0);
   const [added, setAdded] = useState(false);
   const displayImg = imgs[imgIndex] || imgs[0] || '/placeholder.svg';
   const hasMultiple = imgs.length > 1;
-  const onSale = product.regularPrice != null && product.regularPrice > product.price;
-  const savings = onSale ? savingsPercent(product.regularPrice!, product.price) : 0;
+
+  // Per-product sale takes priority; global sale applies on top if active
+  const hasProductSale = product.regularPrice != null && product.regularPrice > product.price;
+  const globalSaleApplies = saleActive && saleDiscount > 0 && !hasProductSale;
+  const salePrice = globalSaleApplies ? Math.round(product.price * (1 - saleDiscount / 100)) : product.price;
+  const regularPrice = globalSaleApplies ? product.price : product.regularPrice;
+
+  const onSale = hasProductSale || globalSaleApplies;
+  const savings = onSale ? savingsPercent(regularPrice!, salePrice) : 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -103,9 +112,9 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="flex flex-col gap-0.5 min-w-0">
             {onSale ? (
               <>
-                <span className="text-slate-500 text-xs line-through">{formatPrice(product.regularPrice!)}</span>
+                <span className="text-slate-500 text-xs line-through">{formatPrice(regularPrice!)}</span>
                 <span className="font-display font-bold text-xl text-solar-leaf leading-none">
-                  {formatPrice(product.price)}
+                  {formatPrice(salePrice)}
                 </span>
               </>
             ) : (
