@@ -98,6 +98,7 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Info area */}
       <div className="p-5 flex flex-col flex-1">
         <span className="text-solar-sky text-xs font-bold uppercase tracking-wider">{product.category}</span>
+        <p className="text-solar-leaf text-xs font-medium mt-1">✓ Every kit includes your racking and mounts</p>
 
         <Link href={`/products/${product.slug}`}>
           <h3 className="font-display font-bold text-base mt-1.5 group-hover:text-solar-sky transition-colors line-clamp-2 leading-snug">
