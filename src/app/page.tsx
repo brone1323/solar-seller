@@ -51,7 +51,9 @@ export default async function HomePage() {
   const onGrid = allProducts.filter((p) => p.category === 'On Grid').sort(byPrice);
   const offGridLeadAcid = allProducts.filter((p) => p.category === 'Off Grid - Lead Acid').sort(byPrice);
   const offGridLithium = allProducts.filter((p) => p.category === 'Off Grid - Lithium').sort(byPrice);
-  const allKits = [...onGrid, ...offGridLeadAcid, ...offGridLithium];
+  const known = new Set(['On Grid', 'Off Grid - Lead Acid', 'Off Grid - Lithium']);
+  const other = allProducts.filter((p) => !known.has(p.category)).sort(byPrice);
+  const allKits = [...onGrid, ...offGridLeadAcid, ...offGridLithium, ...other];
 
   return (
     <div>
@@ -190,6 +192,15 @@ export default async function HomePage() {
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {other.length > 0 && (
+              <div>
+                <h2 className="font-display text-2xl font-bold tracking-tight mb-6">Kits</h2>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {other.map((p) => <ProductCard key={p.id} product={p} />)}
                 </div>
               </div>
             )}
