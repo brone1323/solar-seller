@@ -33,14 +33,9 @@ export function ProductCard({ product }: ProductCardProps) {
   const displayImg = imgs[imgIndex] || imgs[0] || '/placeholder.svg';
   const hasMultiple = imgs.length > 1;
 
-  // Per-product sale takes priority; global sale applies on top if active
-  const hasProductSale = product.regularPrice != null && product.regularPrice > product.price;
-  const globalSaleApplies = saleActive && saleDiscount > 0 && !hasProductSale;
-  const salePrice = globalSaleApplies ? Math.round(product.price * (1 - saleDiscount / 100)) : product.price;
-  const regularPrice = globalSaleApplies ? product.price : product.regularPrice;
-
-  const onSale = hasProductSale || globalSaleApplies;
-  const savings = onSale ? savingsPercent(regularPrice!, salePrice) : 0;
+  const onSale = saleActive && saleDiscount > 0;
+  const salePrice = onSale ? Math.round(product.price * (1 - saleDiscount / 100)) : product.price;
+  const savings = onSale ? saleDiscount : 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -113,7 +108,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="flex flex-col gap-0.5 min-w-0">
             {onSale ? (
               <>
-                <span className="text-slate-500 text-xs line-through">{formatPrice(regularPrice!)}</span>
+                <span className="text-slate-500 text-xs line-through">{formatPrice(product.price)}</span>
                 <span className="font-display font-bold text-xl text-solar-leaf leading-none">
                   {formatPrice(salePrice)}
                 </span>

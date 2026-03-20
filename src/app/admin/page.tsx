@@ -1200,26 +1200,6 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Regular price (cents, optional — shown with strikethrough when set)</label>
-                  <input
-                    type="number"
-                    value={newProduct.regularPrice ?? ''}
-                    onChange={(e) => setNewProduct((p) => ({ ...p, regularPrice: e.target.value === '' ? undefined : Number(e.target.value) }))}
-                    placeholder="Leave empty for no sale"
-                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">Text below price (optional)</label>
-                  <input
-                    type="text"
-                    value={newProduct.priceSubtext || ''}
-                    onChange={(e) => setNewProduct((p) => ({ ...p, priceSubtext: e.target.value }))}
-                    placeholder="e.g. Average installed price: $12,000"
-                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                  />
-                </div>
-                <div>
                   <label className="block text-sm text-slate-400 mb-1">Short Description</label>
                   <input
                     type="text"

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { ProductImageCarousel } from '@/components/ProductImageCarousel';
 import { ProductQuestionsBox } from '@/components/ProductQuestionsBox';
-import { ProductSaleCountdown } from '@/components/ProductSaleCountdown';
+import { ProductPrice } from '@/components/ProductPrice';
 import { ShareButton } from '@/components/ShareButton';
 import { readProducts } from '@/lib/productStorage';
 import { FileText, Youtube, ExternalLink, BookOpen, HeadphonesIcon, FileCheck, Wrench } from 'lucide-react';
@@ -79,22 +79,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <span className="text-solar-sky font-medium">{product.category}</span>
           <h1 className="font-display text-4xl font-bold mt-2 mb-4">{product.name}</h1>
           <div className="mb-1">
-            {product.regularPrice != null && product.regularPrice > product.price ? (
-              <>
-                <ProductSaleCountdown product={product} size="large" />
-                <div className="flex flex-wrap items-baseline gap-3 gap-y-1">
-                  <span className="text-slate-400 font-medium">Sale price</span>
-                  <span className="text-3xl font-bold text-solar-leaf">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.price / 100)}</span>
-                </div>
-                <p className="text-3xl font-bold text-slate-400 line-through mt-1">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.regularPrice / 100)}</p>
-              </>
-            ) : (
-              <p className="text-3xl font-bold text-solar-leaf">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(product.price / 100)}</p>
-            )}
+            <ProductPrice price={product.price} />
           </div>
-          {product.priceSubtext && (
-            <p className="text-slate-400 text-sm mb-6">{product.priceSubtext}</p>
-          )}
           <p className={`text-slate-300 text-lg mb-6 ${product.priceSubtext ? '' : 'mt-5'}`}>{product.description}</p>
           {product.longDescription && (
             <p className="text-slate-400 mb-8">{product.longDescription}</p>
