@@ -4,6 +4,7 @@ import { readProducts } from '@/lib/productStorage';
 import { HomeGridSelector } from '@/components/HomeGridSelector';
 import { FeaturedKitsGrid } from '@/components/FeaturedKitsGrid';
 import { ProductsGridLink } from '@/components/ProductsGridLink';
+import { SolarSizer } from '@/components/SolarSizer';
 
 export const dynamic = 'force-dynamic';
 
@@ -144,6 +145,11 @@ export default async function HomePage() {
           </ProductsGridLink>
         </div>
         <FeaturedKitsGrid featuredProducts={featuredProducts} />
+      </section>
+
+      {/* ── SOLAR SIZER ───────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+        <SolarSizer products={products} />
       </section>
 
       {/* ── WHY CHOOSE US ─────────────────────────── */}
