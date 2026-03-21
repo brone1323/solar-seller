@@ -67,6 +67,7 @@ export default function CheckoutPage() {
     postalCode: '',
   });
   const [complete, setComplete] = useState(false);
+  const [step1Error, setStep1Error] = useState('');
 
   const shippingCents = selectedShipping?.price ?? 0;
   const gstRate = 0.05;
@@ -148,11 +149,12 @@ export default function CheckoutPage() {
               <h2 className="font-display text-xl font-semibold mb-6">Contact Information</h2>
               <input
                 type="email"
-                placeholder="Email"
+                placeholder="Email *"
                 value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 mb-4"
+                onChange={(e) => { setForm((f) => ({ ...f, email: e.target.value })); setStep1Error(''); }}
+                className={`w-full px-4 py-3 rounded-lg bg-white/10 border mb-4 ${step1Error ? 'border-red-400' : 'border-white/20'}`}
               />
+              {step1Error && <p className="text-red-400 text-sm -mt-3 mb-3">{step1Error}</p>}
               <h2 className="font-display text-xl font-semibold mt-8 mb-6">Shipping Address</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 <input
@@ -214,7 +216,13 @@ export default function CheckoutPage() {
                 className="w-full sm:w-1/3 px-4 py-3 rounded-lg bg-white/10 border border-white/20 mt-4"
               />
               <button
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+                    setStep1Error('Please enter a valid email address.');
+                    return;
+                  }
+                  setStep(2);
+                }}
                 className="mt-8 w-full py-4 rounded-xl bg-gradient-to-r from-solar-sky to-solar-leaf font-semibold hover:opacity-90"
               >
                 Continue to Shipping
