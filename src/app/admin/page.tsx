@@ -615,10 +615,10 @@ export default function AdminPage() {
                   onChange={(e) => updateShippingDisabled(e.target.checked)}
                   className="w-5 h-5 rounded border-white/20"
                 />
-                <span>Disable shipping costs (for testing)</span>
+                <span>Include free shipping with current sale</span>
               </label>
               <p className="text-slate-400 text-sm mt-3">
-                When enabled, checkout shows &quot;Free shipping (test mode)&quot; at $0 so you can run a test order without paying shipping.
+                When enabled, checkout shows &quot;Free shipping — included with current sale&quot; at $0.
               </p>
             </div>
             <div className="border-t border-white/10 pt-8">
@@ -788,7 +788,12 @@ export default function AdminPage() {
 
                       <div className="mt-3 text-sm">
                         {evt.type === 'add_to_cart' && (
-                          <p className="text-slate-200">{evt.productName} <span className="text-slate-500">× {evt.quantity}</span></p>
+                          <div className="flex justify-between items-center">
+                            <p className="text-slate-200">{evt.productName} <span className="text-slate-500">× {evt.quantity}</span></p>
+                            {evt.priceCents != null && (
+                              <span className="text-slate-300 font-medium">${(evt.priceCents * evt.quantity / 100).toLocaleString('en-CA', { minimumFractionDigits: 2 })}</span>
+                            )}
+                          </div>
                         )}
                         {(evt.type === 'purchase' || evt.type === 'abandoned_cart') && (
                           <div className="space-y-1">
@@ -806,11 +811,12 @@ export default function AdminPage() {
                                 <div className="flex justify-between text-white font-semibold text-sm pt-1"><span>Total</span><span>${(evt.totalCents/100).toFixed(2)}</span></div>
                               </div>
                             )}
-                            {evt.type === 'purchase' && (evt.email || evt.firstName) && (
+                            {evt.type === 'purchase' && (evt.email || evt.firstName || evt.paypalOrderId) && (
                               <div className="pt-2 mt-2 border-t border-white/10 text-slate-400 text-xs space-y-0.5">
-                                {(evt.firstName || evt.lastName) && <div>{[evt.firstName, evt.lastName].filter(Boolean).join(' ')}</div>}
+                                {(evt.firstName || evt.lastName) && <div className="text-slate-200 font-medium">{[evt.firstName, evt.lastName].filter(Boolean).join(' ')}</div>}
                                 {evt.email && <div><a href={`mailto:${evt.email}`} className="text-solar-sky hover:underline">{evt.email}</a></div>}
                                 {evt.address && <div>{[evt.address, evt.city, evt.province, evt.postalCode].filter(Boolean).join(', ')}</div>}
+                                {evt.paypalOrderId && <div className="text-slate-500">PayPal Order: <span className="text-slate-400 font-mono">{evt.paypalOrderId}</span></div>}
                               </div>
                             )}
                           </div>
@@ -1061,7 +1067,7 @@ export default function AdminPage() {
       ) : (
         <>
           <div className="glass rounded-xl p-6 mb-8 max-w-xl">
-            <h3 className="font-display font-semibold mb-3">Test mode</h3>
+            <h3 className="font-display font-semibold mb-3">Free Shipping</h3>
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -1069,10 +1075,10 @@ export default function AdminPage() {
                 onChange={(e) => updateShippingDisabled(e.target.checked)}
                 className="w-5 h-5 rounded border-white/20"
               />
-              <span>Disable shipping costs (for testing)</span>
+              <span>Include free shipping with current sale</span>
             </label>
             <p className="text-slate-400 text-sm mt-2">
-              When enabled, checkout shows &quot;Free shipping (test mode)&quot; at $0 so you can run a test order without paying shipping.
+              When enabled, checkout shows &quot;Free shipping — included with current sale&quot; at $0.
             </p>
           </div>
           {!showForm ? (
@@ -1348,15 +1354,75 @@ export default function AdminPage() {
                 {/* Spec Sheets */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm text-slate-400">Spec Sheets / Documents (PDF links)</label>
-                    <button type="button" onClick={() => setNewProduct((p) => ({ ...p, specSheets: [...(p.specSheets || []), { label: '', url: '' }] }))} className="text-solar-sky text-sm hover:underline">+ Add</button>
+                    <label className="text-sm text-slate-400">Spec Sheets / Documents</label>
+                    <label className="cursor-pointer text-solar-sky text-sm hover:underline">
+                      + Upload Spec Sheet
+                      <input type="file" accept="application/pdf" className="hidden" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const fd = new FormData();
+                        fd.append('file', file);
+                        try {
+                          const res = await authFetch('/api/upload', { method: 'POST', body: fd });
+                          const data = await res.json();
+                          if (data.url) {
+                            const autoLabel = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                            setNewProduct((p) => ({ ...p, specSheets: [...(p.specSheets || []), { label: autoLabel, url: data.url, category: 'other' }] }));
+                          } else {
+                            alert(data.error || 'Upload failed');
+                          }
+                        } catch {
+                          alert('Upload failed');
+                        }
+                        e.target.value = '';
+                      }} />
+                    </label>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {(newProduct.specSheets || []).map((sheet, i) => (
-                      <div key={i} className="flex gap-2">
-                        <input type="text" value={sheet.label} onChange={(e) => { const n = [...(newProduct.specSheets || [])]; n[i] = { ...n[i], label: e.target.value }; setNewProduct((p) => ({ ...p, specSheets: n })); }} placeholder="Auto-filled from URL" className="w-1/3 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm" />
-                        <input type="text" value={sheet.url} onChange={(e) => { const url = e.target.value; const n = [...(newProduct.specSheets || [])]; const autoLabel = !n[i].label ? (() => { try { const f = url.split('/').pop()?.split('?')[0] ?? ''; return f.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); } catch { return ''; } })() : n[i].label; n[i] = { ...n[i], url, label: autoLabel }; setNewProduct((p) => ({ ...p, specSheets: n })); }} placeholder="https://..." className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm" />
-                        <button type="button" onClick={() => { const n = [...(newProduct.specSheets || [])]; n.splice(i, 1); setNewProduct((p) => ({ ...p, specSheets: n })); }} className="px-2 text-red-400 hover:text-red-300">×</button>
+                      <div key={i} className="flex flex-col gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="flex gap-2">
+                          <select
+                            value={sheet.category || 'other'}
+                            onChange={(e) => { const n = [...(newProduct.specSheets || [])]; n[i] = { ...n[i], category: e.target.value as 'solar-panel' | 'inverter' | 'controller' | 'battery' | 'other' }; setNewProduct((p) => ({ ...p, specSheets: n })); }}
+                            className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm"
+                          >
+                            <option value="solar-panel">Solar Panel Specs</option>
+                            <option value="inverter">Inverter Specs</option>
+                            <option value="controller">Controller Specs</option>
+                            <option value="battery">Battery Specs</option>
+                            <option value="other">Other</option>
+                          </select>
+                          <input type="text" value={sheet.label} onChange={(e) => { const n = [...(newProduct.specSheets || [])]; n[i] = { ...n[i], label: e.target.value }; setNewProduct((p) => ({ ...p, specSheets: n })); }} placeholder="Label" className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm" />
+                          <button type="button" onClick={() => { const n = [...(newProduct.specSheets || [])]; n.splice(i, 1); setNewProduct((p) => ({ ...p, specSheets: n })); }} className="px-2 text-red-400 hover:text-red-300">×</button>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <a href={sheet.url} target="_blank" rel="noopener noreferrer" className="text-solar-sky text-xs truncate flex-1 hover:underline">{sheet.url.split('/').pop()?.split('?')[0]}</a>
+                          <label className="cursor-pointer px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-slate-300 text-xs border border-white/20 whitespace-nowrap">
+                            Replace PDF
+                            <input type="file" accept="application/pdf" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const fd = new FormData();
+                              fd.append('file', file);
+                              try {
+                                const res = await authFetch('/api/upload', { method: 'POST', body: fd });
+                                const data = await res.json();
+                                if (data.url) {
+                                  const n = [...(newProduct.specSheets || [])];
+                                  const autoLabel = n[i].label || file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                  n[i] = { ...n[i], url: data.url, label: autoLabel };
+                                  setNewProduct((p) => ({ ...p, specSheets: n }));
+                                } else {
+                                  alert(data.error || 'Upload failed');
+                                }
+                              } catch {
+                                alert('Upload failed');
+                              }
+                              e.target.value = '';
+                            }} />
+                          </label>
+                        </div>
                       </div>
                     ))}
                   </div>

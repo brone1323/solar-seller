@@ -11,7 +11,7 @@ export interface Product {
   priceSubtext?: string;
   images: string[];
   /** Downloadable spec sheet PDFs */
-  specSheets?: { label: string; url: string }[];
+  specSheets?: { label: string; url: string; category?: 'solar-panel' | 'inverter' | 'controller' | 'battery' | 'other' }[];
   /** YouTube video links for install/product guidance */
   youtubeLinks?: { title: string; url: string }[];
   category: string;

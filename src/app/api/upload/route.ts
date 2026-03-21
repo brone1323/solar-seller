@@ -14,17 +14,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const maxSize = 4 * 1024 * 1024; // 4MB
+    const isPdf = file.type === 'application/pdf';
+    const maxSize = isPdf ? 20 * 1024 * 1024 : 4 * 1024 * 1024;
     if (file.size > maxSize) {
-      return NextResponse.json({ error: 'File too large. Max 4MB.' }, { status: 400 });
+      return NextResponse.json({ error: `File too large. Max ${isPdf ? '20MB' : '4MB'}.` }, { status: 400 });
     }
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Invalid file type. Use JPEG, PNG, WebP, or GIF.' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid file type. Use JPEG, PNG, WebP, GIF, or PDF.' }, { status: 400 });
     }
 
-    const blob = await put(`products/${Date.now()}-${file.name}`, file, {
+    const folder = isPdf ? 'spec-sheets' : 'products';
+    const blob = await put(`${folder}/${Date.now()}-${file.name}`, file, {
       access: 'public',
     });
 

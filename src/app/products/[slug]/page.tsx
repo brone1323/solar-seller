@@ -116,21 +116,34 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <FileText className="w-5 h-5 text-solar-sky" /> Spec Sheets & Documents
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {specSheets.map((sheet, i) => (
-              <a
-                key={i}
-                href={sheet.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="glass rounded-xl border border-white/10 hover:border-solar-sky/30 hover:bg-solar-sky/5 transition-all p-4 flex items-center gap-3 group"
-              >
-                <div className="w-9 h-9 rounded-lg bg-solar-sky/10 border border-solar-sky/20 flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-4 h-4 text-solar-sky" />
-                </div>
-                <span className="font-medium text-sm text-slate-200 group-hover:text-white transition-colors flex-1 min-w-0 truncate">{sheet.label || 'Spec Sheet'}</span>
-                <ExternalLink className="w-4 h-4 text-slate-500 flex-shrink-0" />
-              </a>
-            ))}
+            {specSheets.map((sheet, i) => {
+              const categoryLabels: Record<string, string> = {
+                'solar-panel': 'Solar Panel',
+                'inverter': 'Inverter',
+                'controller': 'Controller',
+                'battery': 'Battery',
+                'other': 'Document',
+              };
+              const categoryLabel = categoryLabels[sheet.category || 'other'] || 'Document';
+              return (
+                <a
+                  key={i}
+                  href={sheet.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glass rounded-xl border border-white/10 hover:border-solar-sky/30 hover:bg-solar-sky/5 transition-all p-4 flex items-center gap-3 group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-solar-sky/10 border border-solar-sky/20 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 h-4 text-solar-sky" />
+                  </div>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="font-medium text-sm text-slate-200 group-hover:text-white transition-colors truncate">{sheet.label || 'Spec Sheet'}</span>
+                    <span className="text-xs text-slate-500">{categoryLabel}</span>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                </a>
+              );
+            })}
           </div>
         </div>
       )}
