@@ -74,7 +74,7 @@ export default function AdminPage() {
   const [batteryChem, setBatteryChem] = useState<BatteryChem>('lead_acid');
 
   type ActivityEvent =
-    | { type: 'add_to_cart'; at: string; productId: string; productName: string; quantity: number }
+    | { type: 'add_to_cart'; at: string; productId: string; productName: string; quantity: number; priceCents?: number }
     | { type: 'purchase'; at: string; email?: string; firstName?: string; lastName?: string; address?: string; city?: string; province?: string; postalCode?: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number; paypalOrderId?: string }
     | { type: 'abandoned_cart'; at: string; items: { productId: string; name: string; quantity: number; priceCents: number }[]; subtotalCents: number }
     | { type: 'contact'; at: string; name: string; email: string; message: string };
