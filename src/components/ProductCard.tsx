@@ -7,7 +7,7 @@ import { ShareButton } from './ShareButton';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { useSale } from '@/context/SaleContext';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -30,6 +30,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const imgs = product.images?.filter(Boolean) || [];
   const [imgIndex, setImgIndex] = useState(0);
   const [added, setAdded] = useState(false);
+  const cycleRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const displayImg = imgs[imgIndex] || imgs[0] || '/placeholder.svg';
   const hasMultiple = imgs.length > 1;
 
@@ -50,8 +51,14 @@ export function ProductCard({ product }: ProductCardProps) {
       <Link href={`/products/${product.slug}`} className="block relative">
         <div
           className="relative aspect-[4/3] bg-solar-deep/40 overflow-hidden"
-          onMouseEnter={() => hasMultiple && setImgIndex((i) => (i + 1) % imgs.length)}
-          onMouseLeave={() => setImgIndex(0)}
+          onMouseEnter={() => {
+            if (!hasMultiple) return;
+            cycleRef.current = setInterval(() => setImgIndex((i) => (i + 1) % imgs.length), 800);
+          }}
+          onMouseLeave={() => {
+            if (cycleRef.current) clearInterval(cycleRef.current);
+            setImgIndex(0);
+          }}
         >
           <Image
             src={displayImg}
