@@ -64,6 +64,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         productId: product.id,
         productName: product.name,
         quantity,
+        priceCents: product.price,
       }),
     }).catch(() => {});
   };

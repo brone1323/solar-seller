@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const settings = await getSettings();
     const price = settings.shippingDisabled ? 0 : DESIGN_PACKAGE_RATE;
     const name = settings.shippingDisabled
-      ? 'Free shipping (test mode)'
+      ? 'Free shipping — included with current sale'
       : 'Shipped to your door with full design package within 3 weeks';
 
     const quotes: ShippingQuote[] = [

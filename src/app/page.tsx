@@ -91,7 +91,7 @@ export default async function HomePage() {
             <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-6 leading-[1.05] tracking-tight animate-fade-up delay-100">
               Go Solar.{' '}
               <br className="hidden sm:block" />
-              <span className="gradient-text">Do It Yourself.</span>
+              <span className="gradient-text">You Can Do It With Our Help.</span>
             </h1>
 
             <p className="text-xl sm:text-2xl text-slate-300 mb-10 max-w-2xl leading-relaxed animate-fade-up delay-200">
@@ -148,11 +148,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── SOLAR SIZER ───────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
-        <SolarSizer products={allKits} />
-      </section>
-
       {/* ── ALL KITS ──────────────────────────────── */}
       <section id="kits" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {allKits.length === 0 ? (
@@ -205,6 +200,11 @@ export default async function HomePage() {
             )}
           </div>
         )}
+      </section>
+
+      {/* ── SOLAR SIZER ───────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+        <SolarSizer products={allKits} />
       </section>
 
       {/* ── WHY CHOOSE US ─────────────────────────── */}

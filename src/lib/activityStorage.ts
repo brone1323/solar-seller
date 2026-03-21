@@ -10,6 +10,7 @@ export type AddToCartEvent = {
   productId: string;
   productName: string;
   quantity: number;
+  priceCents?: number;
 };
 
 export type PurchaseEvent = {
