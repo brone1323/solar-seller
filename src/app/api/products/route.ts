@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
       regularPrice: typeof body.regularPrice === 'number' && body.regularPrice >= 0 ? body.regularPrice : undefined,
       priceSubtext: typeof body.priceSubtext === 'string' ? body.priceSubtext.trim() || undefined : undefined,
       images: Array.isArray(body.images) ? body.images : body.images ? [body.images] : [],
+      specSheets: Array.isArray(body.specSheets) ? body.specSheets : [],
+      youtubeLinks: Array.isArray(body.youtubeLinks) ? body.youtubeLinks : [],
       category: body.category || 'Uncategorized',
       specifications: typeof body.specifications === 'object' ? body.specifications : {},
       featured: Boolean(body.featured),

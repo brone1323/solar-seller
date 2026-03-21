@@ -1223,6 +1223,87 @@ export default function AdminPage() {
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                   />
                 </div>
+
+                {/* Spec Sheets */}
+                <div className="glass rounded-xl p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="text-sm font-medium text-white">Spec Sheets / Documents</label>
+                    <label className="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg bg-solar-sky/20 hover:bg-solar-sky/30 text-solar-sky text-sm border border-solar-sky/30">
+                      + Upload Spec Sheet
+                      <input type="file" accept="application/pdf" className="hidden" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const fd = new FormData();
+                        fd.append('file', file);
+                        try {
+                          const res = await authFetch('/api/upload', { method: 'POST', body: fd });
+                          const data = await res.json();
+                          if (data.url) {
+                            const autoLabel = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                            setNewProduct((p) => ({ ...p, specSheets: [...(p.specSheets || []), { label: autoLabel, url: data.url, category: 'other' }] }));
+                          } else {
+                            alert(data.error || 'Upload failed');
+                          }
+                        } catch {
+                          alert('Upload failed');
+                        }
+                        e.target.value = '';
+                      }} />
+                    </label>
+                  </div>
+                  <div className="space-y-3">
+                    {(newProduct.specSheets || []).map((sheet, i) => (
+                      <div key={i} className="flex flex-col gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="flex gap-2">
+                          <select
+                            value={sheet.category || 'other'}
+                            onChange={(e) => { const n = [...(newProduct.specSheets || [])]; n[i] = { ...n[i], category: e.target.value as 'solar-panel' | 'inverter' | 'controller' | 'battery' | 'other' }; setNewProduct((p) => ({ ...p, specSheets: n })); }}
+                            className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm"
+                          >
+                            <option value="solar-panel">Solar Panel Specs</option>
+                            <option value="inverter">Inverter Specs</option>
+                            <option value="controller">Controller Specs</option>
+                            <option value="battery">Battery Specs</option>
+                            <option value="other">Other</option>
+                          </select>
+                          <input type="text" value={sheet.label} onChange={(e) => { const n = [...(newProduct.specSheets || [])]; n[i] = { ...n[i], label: e.target.value }; setNewProduct((p) => ({ ...p, specSheets: n })); }} placeholder="Label" className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm" />
+                          <button type="button" onClick={() => { const n = [...(newProduct.specSheets || [])]; n.splice(i, 1); setNewProduct((p) => ({ ...p, specSheets: n })); }} className="px-2 text-red-400 hover:text-red-300">×</button>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <a href={sheet.url} target="_blank" rel="noopener noreferrer" className="text-solar-sky text-xs truncate flex-1 hover:underline">{sheet.url.split('/').pop()?.split('?')[0]}</a>
+                          <label className="cursor-pointer px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-slate-300 text-xs border border-white/20 whitespace-nowrap">
+                            Replace PDF
+                            <input type="file" accept="application/pdf" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const fd = new FormData();
+                              fd.append('file', file);
+                              try {
+                                const res = await authFetch('/api/upload', { method: 'POST', body: fd });
+                                const data = await res.json();
+                                if (data.url) {
+                                  const n = [...(newProduct.specSheets || [])];
+                                  const autoLabel = n[i].label || file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                  n[i] = { ...n[i], url: data.url, label: autoLabel };
+                                  setNewProduct((p) => ({ ...p, specSheets: n }));
+                                } else {
+                                  alert(data.error || 'Upload failed');
+                                }
+                              } catch {
+                                alert('Upload failed');
+                              }
+                              e.target.value = '';
+                            }} />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                    {(newProduct.specSheets || []).length === 0 && (
+                      <p className="text-slate-500 text-xs">No spec sheets uploaded yet.</p>
+                    )}
+                  </div>
+                </div>
+
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <label className="block text-sm text-slate-400">Kit Images (unlimited — first shown on listing, all scrollable on product page)</label>
@@ -1351,83 +1432,6 @@ export default function AdminPage() {
                     ))}
                   </div>
                 </div>
-                {/* Spec Sheets */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm text-slate-400">Spec Sheets / Documents</label>
-                    <label className="cursor-pointer text-solar-sky text-sm hover:underline">
-                      + Upload Spec Sheet
-                      <input type="file" accept="application/pdf" className="hidden" onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        const fd = new FormData();
-                        fd.append('file', file);
-                        try {
-                          const res = await authFetch('/api/upload', { method: 'POST', body: fd });
-                          const data = await res.json();
-                          if (data.url) {
-                            const autoLabel = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                            setNewProduct((p) => ({ ...p, specSheets: [...(p.specSheets || []), { label: autoLabel, url: data.url, category: 'other' }] }));
-                          } else {
-                            alert(data.error || 'Upload failed');
-                          }
-                        } catch {
-                          alert('Upload failed');
-                        }
-                        e.target.value = '';
-                      }} />
-                    </label>
-                  </div>
-                  <div className="space-y-3">
-                    {(newProduct.specSheets || []).map((sheet, i) => (
-                      <div key={i} className="flex flex-col gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
-                        <div className="flex gap-2">
-                          <select
-                            value={sheet.category || 'other'}
-                            onChange={(e) => { const n = [...(newProduct.specSheets || [])]; n[i] = { ...n[i], category: e.target.value as 'solar-panel' | 'inverter' | 'controller' | 'battery' | 'other' }; setNewProduct((p) => ({ ...p, specSheets: n })); }}
-                            className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm"
-                          >
-                            <option value="solar-panel">Solar Panel Specs</option>
-                            <option value="inverter">Inverter Specs</option>
-                            <option value="controller">Controller Specs</option>
-                            <option value="battery">Battery Specs</option>
-                            <option value="other">Other</option>
-                          </select>
-                          <input type="text" value={sheet.label} onChange={(e) => { const n = [...(newProduct.specSheets || [])]; n[i] = { ...n[i], label: e.target.value }; setNewProduct((p) => ({ ...p, specSheets: n })); }} placeholder="Label" className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm" />
-                          <button type="button" onClick={() => { const n = [...(newProduct.specSheets || [])]; n.splice(i, 1); setNewProduct((p) => ({ ...p, specSheets: n })); }} className="px-2 text-red-400 hover:text-red-300">×</button>
-                        </div>
-                        <div className="flex gap-2 items-center">
-                          <a href={sheet.url} target="_blank" rel="noopener noreferrer" className="text-solar-sky text-xs truncate flex-1 hover:underline">{sheet.url.split('/').pop()?.split('?')[0]}</a>
-                          <label className="cursor-pointer px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-slate-300 text-xs border border-white/20 whitespace-nowrap">
-                            Replace PDF
-                            <input type="file" accept="application/pdf" className="hidden" onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              const fd = new FormData();
-                              fd.append('file', file);
-                              try {
-                                const res = await authFetch('/api/upload', { method: 'POST', body: fd });
-                                const data = await res.json();
-                                if (data.url) {
-                                  const n = [...(newProduct.specSheets || [])];
-                                  const autoLabel = n[i].label || file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                                  n[i] = { ...n[i], url: data.url, label: autoLabel };
-                                  setNewProduct((p) => ({ ...p, specSheets: n }));
-                                } else {
-                                  alert(data.error || 'Upload failed');
-                                }
-                              } catch {
-                                alert('Upload failed');
-                              }
-                              e.target.value = '';
-                            }} />
-                          </label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 {/* YouTube Links */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
