@@ -3,6 +3,7 @@ import { ArrowRight, Zap, Shield, Wrench, Mail, Star, Sun, Battery, Cpu, BookOpe
 import { readProducts } from '@/lib/productStorage';
 import { ProductCard } from '@/components/ProductCard';
 import { SolarSizer } from '@/components/SolarSizer';
+import { NewsletterSignup } from '@/components/NewsletterSignup';
 
 export const dynamic = 'force-dynamic';
 
@@ -252,6 +253,9 @@ export default async function HomePage() {
         </div>
         <div className="divider mt-10" />
       </section>
+
+      {/* ── NEWSLETTER ────────────────────────────── */}
+      <NewsletterSignup />
 
       {/* ── CTA BANNER ────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
