@@ -23,7 +23,7 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
 
-  const [tab, setTab] = useState<'kits' | 'blog' | 'questions' | 'settings' | 'activity'>('kits');
+  const [tab, setTab] = useState<'kits' | 'blog' | 'questions' | 'settings' | 'activity' | 'visitors'>('kits');
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,6 +83,10 @@ export default function AdminPage() {
   const [activityLoading, setActivityLoading] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(false);
 
+  type PageView = { sessionId: string; visitorId: string; path: string; title: string; at: string; referrer?: string };
+  const [pageViews, setPageViews] = useState<PageView[]>([]);
+  const [pageViewsLoading, setPageViewsLoading] = useState(false);
+
   useEffect(() => {
     authFetch('/api/auth/session')
       .then((r) => r.json())
@@ -140,6 +144,17 @@ export default function AdminPage() {
         .then((r) => r.json())
         .then((data) => setQuestionsList(Array.isArray(data) ? data : []))
         .finally(() => setQuestionsLoading(false));
+    }
+  }, [tab, authenticated]);
+
+  useEffect(() => {
+    if (tab === 'visitors' && authenticated) {
+      setPageViewsLoading(true);
+      authFetch('/api/admin/pageviews')
+        .then((r) => r.json())
+        .then((data) => setPageViews(Array.isArray(data) ? data : []))
+        .catch(() => setPageViews([]))
+        .finally(() => setPageViewsLoading(false));
     }
   }, [tab, authenticated]);
 
@@ -577,6 +592,12 @@ export default function AdminPage() {
           <BarChart2 className="w-5 h-5" /> Activity
         </button>
         <button
+          onClick={() => setTab('visitors')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'visitors' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
+        >
+          <BarChart2 className="w-5 h-5" /> Visitors
+        </button>
+        <button
           onClick={() => setTab('kits')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tab === 'kits' ? 'bg-solar-leaf text-white' : 'glass hover:bg-white/10'}`}
         >
@@ -834,6 +855,136 @@ export default function AdminPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          );
+        })()
+      ) : tab === 'visitors' ? (
+        pageViewsLoading ? (
+          <div className="text-slate-400">Loading visitor journeys...</div>
+        ) : (() => {
+          // Group page views by sessionId, sort sessions by most recent activity
+          const sessionMap = new Map<string, { views: PageView[]; visitorId: string }>();
+          for (const v of pageViews) {
+            const existing = sessionMap.get(v.sessionId);
+            if (existing) {
+              existing.views.push(v);
+            } else {
+              sessionMap.set(v.sessionId, { views: [v], visitorId: v.visitorId });
+            }
+          }
+          const sessions = Array.from(sessionMap.entries()).map(([sid, { views, visitorId }]) => {
+            const sorted = [...views].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+            const lastAt = sorted[sorted.length - 1]?.at ?? '';
+            return { sid, visitorId, views: sorted, lastAt };
+          });
+          sessions.sort((a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime());
+
+          const uniqueVisitors = new Set(pageViews.map((v) => v.visitorId)).size;
+
+          const pathLabel = (path: string) => {
+            if (path === '/') return 'Homepage';
+            if (path.startsWith('/products/')) return `Product: ${path.replace('/products/', '')}`;
+            if (path === '/products') return 'All Products';
+            if (path === '/cart') return 'Cart';
+            if (path === '/checkout') return 'Checkout';
+            if (path === '/blog') return 'Blog';
+            if (path.startsWith('/blog/')) return `Blog: ${path.replace('/blog/', '')}`;
+            if (path === '/why-solar-diy') return 'Why Solar-DIY';
+            return path;
+          };
+
+          return (
+            <div className="max-w-5xl space-y-6">
+              {/* Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {[
+                  { label: 'Total Page Views', value: pageViews.length, color: 'text-solar-sky', bg: 'bg-solar-sky/10 border-solar-sky/20' },
+                  { label: 'Sessions', value: sessions.length, color: 'text-solar-leaf', bg: 'bg-solar-leaf/10 border-solar-leaf/20' },
+                  { label: 'Unique Visitors', value: uniqueVisitors, color: 'text-accent-sun', bg: 'bg-accent-sun/10 border-accent-sun/20' },
+                ].map((s) => (
+                  <div key={s.label} className={`glass rounded-xl p-4 border ${s.bg}`}>
+                    <div className="text-slate-400 text-xs mb-1">{s.label}</div>
+                    <div className={`font-display text-xl font-bold ${s.color}`}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <p className="text-slate-400 text-sm">Showing {sessions.length} sessions — most recent first. Last page in each session = where they stopped.</p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!confirm('Clear all page view data?')) return;
+                    await authFetch('/api/admin/pageviews', { method: 'DELETE' });
+                    setPageViews([]);
+                  }}
+                  className="text-xs text-slate-600 hover:text-red-400 transition-colors px-2 py-1 rounded glass"
+                >
+                  Clear all
+                </button>
+              </div>
+
+              {sessions.length === 0 ? (
+                <p className="text-slate-400 py-8">No visitor data yet. Data will appear as visitors browse the site.</p>
+              ) : (
+                <div className="space-y-3">
+                  {sessions.map(({ sid, visitorId, views, lastAt }) => {
+                    const firstView = views[0];
+                    const lastView = views[views.length - 1];
+                    const durationMs = views.length > 1
+                      ? new Date(lastView.at).getTime() - new Date(firstView.at).getTime()
+                      : null;
+                    const durationLabel = durationMs != null
+                      ? durationMs < 60000 ? `${Math.round(durationMs / 1000)}s` : `${Math.round(durationMs / 60000)}m`
+                      : null;
+
+                    return (
+                      <div key={sid} className="glass rounded-xl border border-white/[0.07] overflow-hidden">
+                        {/* Session header */}
+                        <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <span className="text-xs font-mono text-slate-500">#{sid.slice(0, 8)}</span>
+                            <span className="text-xs text-slate-400">
+                              {new Date(lastAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              <span className="text-slate-600 mx-1">·</span>
+                              {new Date(lastAt).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                            <span className="text-xs text-slate-500">{views.length} page{views.length !== 1 ? 's' : ''}</span>
+                            {durationLabel && <span className="text-xs text-slate-500">{durationLabel} on site</span>}
+                          </div>
+                          {firstView.referrer && (
+                            <span className="text-xs text-slate-600 truncate max-w-[200px]" title={firstView.referrer}>
+                              from {(() => { try { return new URL(firstView.referrer).hostname; } catch { return firstView.referrer; } })()}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Page journey */}
+                        <div className="divide-y divide-white/[0.04]">
+                          {views.map((v, idx) => {
+                            const isLast = idx === views.length - 1;
+                            return (
+                              <div key={idx} className={`flex items-center gap-3 px-4 py-2.5 ${isLast ? 'bg-amber-400/5' : ''}`}>
+                                <span className="text-slate-600 text-xs w-4 flex-shrink-0">{idx + 1}</span>
+                                <span className={`flex-1 text-sm ${isLast ? 'text-amber-300 font-medium' : 'text-slate-300'}`}>
+                                  {pathLabel(v.path)}
+                                  <span className="text-slate-600 text-xs ml-2 font-normal">{v.path}</span>
+                                </span>
+                                <span className="text-slate-600 text-xs flex-shrink-0">
+                                  {new Date(v.at).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
+                                </span>
+                                {isLast && (
+                                  <span className="text-xs bg-amber-400/15 text-amber-400 px-1.5 py-0.5 rounded font-medium flex-shrink-0">stopped</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
