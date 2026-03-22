@@ -767,7 +767,11 @@ export default function AdminPage() {
                              evt.type === 'contact' ? '✉ Contact' :
                              '+ Add to Cart'}
                           </span>
-                          <span className="text-slate-400 text-sm">{new Date(evt.at).toLocaleString()}</span>
+                          <span className="text-slate-400 text-sm">
+                            {new Date(evt.at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            <span className="text-slate-600 mx-1">·</span>
+                            {new Date(evt.at).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                          </span>
                         </div>
                         {evt.type === 'purchase' && (
                           <span className="text-solar-leaf font-bold">${(evt.totalCents / 100).toFixed(2)}</span>
