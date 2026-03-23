@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     // Send notification email via Resend if configured
     const apiKey = process.env.RESEND_API_KEY;
-    const to = process.env.CONTACT_EMAIL_TO || 'info@solar-diy.ca';
+    const to = process.env.CONTACT_EMAIL_TO || 'info@solar-diy.com';
     const from = process.env.RESEND_FROM_EMAIL || 'Solar DIY <onboarding@resend.dev>';
 
     if (apiKey) {

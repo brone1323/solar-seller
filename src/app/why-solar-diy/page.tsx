@@ -149,10 +149,10 @@ export default function WhySolarDIYPage() {
               Browse Equipment <ArrowRight className="w-5 h-5" />
             </Link>
             <a
-              href="mailto:info@solar-diy.ca"
+              href="mailto:info@solar-diy.com"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl glass border border-white/15 font-semibold hover:bg-white/10 transition-all"
             >
-              <Mail className="w-5 h-5" /> Email us at info@solar-diy.ca
+              <Mail className="w-5 h-5" /> Email us at info@solar-diy.com
             </a>
           </div>
         </div>

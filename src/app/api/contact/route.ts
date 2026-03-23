@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const apiKey = process.env.RESEND_API_KEY;
-    const to = process.env.CONTACT_EMAIL_TO || 'info@solar-diy.ca';
+    const to = process.env.CONTACT_EMAIL_TO || 'info@solar-diy.com';
     const from = process.env.RESEND_FROM_EMAIL || 'Solar DIY <onboarding@resend.dev>';
 
     if (apiKey) {
@@ -50,12 +50,12 @@ export async function POST(request: NextRequest) {
         const err = await res.text();
         console.error('Resend error:', err);
         if (!stored) {
-          return NextResponse.json({ error: 'Failed to send. Try emailing us at info@solar-diy.ca' }, { status: 500 });
+          return NextResponse.json({ error: 'Failed to send. Try emailing us at info@solar-diy.com' }, { status: 500 });
         }
       }
     } else if (!stored) {
       return NextResponse.json(
-        { error: 'Unable to save your message right now. Please email us at info@solar-diy.ca' },
+        { error: 'Unable to save your message right now. Please email us at info@solar-diy.com' },
         { status: 500 }
       );
     }
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
   } catch (e) {
     console.error('Contact POST error:', e);
     return NextResponse.json(
-      { error: 'Something went wrong. Please try again or email info@solar-diy.ca' },
+      { error: 'Something went wrong. Please try again or email info@solar-diy.com' },
       { status: 500 }
     );
   }
